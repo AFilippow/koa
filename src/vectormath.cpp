@@ -24,7 +24,7 @@ vector<float> vector_difference(vector<float> x, vector<float> y, string str){
 	}
 	
 vector<float> vector_difference(vector<float> x, vector<float> y)
-				{
+{
 	vector<float> difference;
 	difference.resize(x.size());
 	if (x.size() != y.size()) {
@@ -35,7 +35,7 @@ vector<float> vector_difference(vector<float> x, vector<float> y)
 	for (unsigned int i =0; i < x.size(); i++)
 		difference[i] = x[i]-y[i];
 	return difference;
-				}
+}
 				
 				
 vector<float> vector_sum(vector<float> x, vector<float> y)

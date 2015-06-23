@@ -8,7 +8,165 @@ cspaceconverter::cspaceconverter(){
 	kinematic_solver = new ChainFkSolverPos_recursive(KukaChain);
 	jointNumber = KukaChain.getNrOfJoints();
 
+
 }
+float vectordistance(vector<float> x, vector<float> y)
+{
+	vector<float> difference;
+	float output = 0;
+	difference.resize(x.size());
+	if (x.size() != y.size()) {
+		cout << "Vector subtraction error: sizes not the same!\n";
+		return 100000;
+	}
+	for (unsigned int i =0; i < x.size(); i++)
+		output += (x[i]-y[i])*(x[i]-y[i]);
+	return sqrt(output);
+}
+float vectordistance(vector<float> x, vector<int> y)
+{
+	vector<float> yprime(y.size());
+	for (int i = 0; i < y.size(); i++)
+	yprime[i] = (float)(y[i]);
+	return vectordistance(x, yprime);
+}
+
+std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<int> obstacle, int num_points){
+	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
+	std::list<vector<float> > output;
+	if (!slicefile)
+	{
+		printf("error opening file \n");
+		return output;
+	}
+	int pointscontrolled;
+	int dim = position.size();
+	vector<float> loadedpoint(dim);
+	float mindist = 10000;
+	pointscontrolled = 0;
+	std::string line;
+	while (std::getline(slicefile, line))
+	{	
+		std::istringstream iss(line); 
+		for (int i = 0; i < dim; i++){
+			if (!(iss >> loadedpoint[i])) { printf("error: cannot read line!\n"); break; }
+		}
+		pointscontrolled ++;
+		bool inserted = false;
+		std::list<vector<float> >::iterator iter;
+		for (iter = output.begin(); iter != output.end(); iter++){
+			if (vectordistance(loadedpoint, position) < vectordistance(*iter, position)){
+				output.insert(iter, loadedpoint);
+				inserted = true;
+				break;
+			}
+		}
+		if (output.size() < num_points && inserted == false)
+			output.push_back(loadedpoint);
+		while (output.size() > num_points) 
+			output.pop_back();
+	}
+	return output;
+}
+
+
+void uniquely_bin(vector< vector< int > >* par_list, vector<float> par_vector){
+	vector<int> binned_vector(3);
+	//printf("binning Vector %f, %f, %f\n", par_vector[0], par_vector[1], par_vector[2]);
+	
+	binned_vector[0] = floor((par_vector[0]+0.3)*61.0/0.6);
+	binned_vector[1] = floor((par_vector[1]+0.15)*61.0/0.6);
+	binned_vector[2] = floor((par_vector[2])*21/0.2);
+	
+	for (int i = 0; i < par_list->size(); i++){
+		if ((*par_list)[i][0] == binned_vector[0] && (*par_list)[i][1] == binned_vector[1] && (*par_list)[i][2] == binned_vector[2])
+			return;
+	}
+	par_list->push_back(binned_vector);
+	//printf("Binned Vector to %i, %i, %i\n",binned_vector[0],binned_vector[1],binned_vector[2]);
+	return;
+}
+vector<float> unbin(vector<int> par_vec){
+	vector<float> output(3);
+	output[0] = 0.6/61*par_vec[0]-0.3;
+	output[1] = 0.6/61*par_vec[1]-0.15;
+	output[2] = 0.2/21*par_vec[2];
+	return output;
+	
+}
+
+
+void* update_obstacle_list(void* par_void){
+	lister_parameters params = *(lister_parameters*) par_void;
+	
+	while (true){
+		vector<vector<int> > binned_obstacles(0);
+		vector<float> position;
+		
+		pthread_mutex_lock(params.position_lock);
+		position = *(params.position);
+		pthread_mutex_unlock(params.position_lock);
+		if (position.size() < 1){
+			printf("No position received:\n");
+			sleep(2);
+			continue;
+		}
+		//printf("received: %f, %f, %f, %f \n", position[0], position[1], position[2], position[3]);
+		
+		
+		pthread_mutex_lock(params.list_lock);	
+		std::list<vector<float> >::iterator iter;
+		for (iter = params.obstacle_list->begin(); iter != params.obstacle_list->end(); iter++){
+			uniquely_bin(&binned_obstacles, *iter);
+		}
+		pthread_mutex_unlock(params.list_lock);
+		
+		std::list< vector < float > > concat_obstacle_list;
+		std::list < float> dist_list;
+		
+		vector< vector < int > >::iterator iter2;
+		for (iter2 = binned_obstacles.begin(); iter2 != binned_obstacles.end(); iter2++){
+			std::list<vector<float> > newlist = load_closest_obstacle(position, *iter2, 8);
+			std::list< vector < float > >::iterator iter3;
+			for(iter3 = newlist.begin(); iter3!= newlist.end(); iter3++){
+				//dist_list.push_back(vectordistance(params.converter->joint_to_cartesian(position, -1), unbin(*iter2) ));
+				dist_list.push_back(vectordistance(position, *iter3 ));
+			}
+			concat_obstacle_list.splice(concat_obstacle_list.end(), newlist);
+		}
+		int listsize = concat_obstacle_list.size();
+		//printf("generated %i positions\n", listsize);
+		pthread_mutex_lock(params.configuration_lock);
+		params.distances_list->clear();
+		*(params.distances_list) = dist_list;
+		*(params.configuration_list) = concat_obstacle_list;
+		pthread_mutex_unlock(params.configuration_lock);
+	
+	}
+}
+void cspaceconverter::launch_obstacle_thread(){
+	pthread_t thread;
+	lister_parameters* t = new lister_parameters(this, &list_lock, &position_lock, &configuration_lock, &position, &obstacle_list, &configuration_list, &distances_list); 
+	int rc = pthread_create(&thread, NULL, update_obstacle_list, (void *)t);
+     
+	
+}
+void cspaceconverter::set_position(vector<float> par_pos){
+	pthread_mutex_lock(&position_lock);
+	
+	position = par_pos;	
+	pthread_mutex_unlock(&position_lock);	
+}
+
+void cspaceconverter::set_obstacles(vector<vector<float> > par_obst){
+	pthread_mutex_lock(&list_lock);
+	obstacle_list.clear();
+	for (int i = 0; i < par_obst.size(); i++)
+		obstacle_list.push_back(par_obst[i]);
+	pthread_mutex_unlock(&list_lock);	
+}
+
+
 int cspaceconverter::examineDifference(vector<float> point1, vector<float> point2){
 	//printf(" %f \n",vector_length(vector_difference(point1, point2)));
 	if(vector_length(vector_difference(point1, point2))<0.03){
@@ -46,270 +204,32 @@ vector< float > toVector(KDL::JntArray i){
 		output[j] = i(j);
 	return output;
 }
-void* coarsenYZData(void* slicenumber){
-	int i = *(int*)slicenumber;
 
-	FILE * yzslice;
-	std::string line;
-	int x;
-	KDL::JntArray point(4);
-	time_t start = time(0);
-	//for (int i = 0; i < 62; i++){
-		for(int j = 0; j < 22; j++){
-			vector< vector< vector< float > > >obstacles(62);
-			vector< vector< float > > counts(62);
-			std::ifstream  slicefile(("/home/andrej/Workspace/cspoutput/yzslices/slice_"+boost::to_string(i)+"_"+boost::to_string(j)+".dat").c_str(), ios::in);		
-			while (std::getline(slicefile, line)){
-				std::istringstream iss(line);
-				if (!(iss >> x  >> point(0) >> point(1) >> point(2) >> point(3))) { printf("error: cannot read line!\n");break; }
-					
-				int count;
-				bool found = false;
-				for (int i = 0; i < obstacles[x].size(); i++){
-					if (specialdistance(point, obstacles[x][i]) < 0.2 && !found)
-						{
-							count = counts[x][i];
-							for (int j = 0; j < 4; j++)
-								obstacles[x][i][j] = (obstacles[x][i][j]+point(j)/((float)count))*((float)count)/((float)count+1);
-							counts[x][i]++;
-							found = true;
-						}
-				}
-				if(!found){
-					int size = obstacles[x].size();
-					obstacles[x].resize(size +1);
-					obstacles[x][size].resize(4);
-					counts[x].resize(size+1);
-					for (int j = 0; j < 4; j++)
-						obstacles[x][size][j] = point(j);
-					counts[x][size] = 1;
-				}	
-					
-			}
-		FILE * yzslice;
-			for (int x1 = 0; x1 < 62; x1++){
-				yzslice = fopen(("/home/andrej/Workspace/cspoutput/yzreduced/slice_"+boost::to_string(x1)+"_"+boost::to_string(i)+"_"+boost::to_string(j)+".dat").c_str(),"w");
-				for (int i1 = 0; i1 < obstacles[x1].size(); i1++)
-					fprintf(yzslice,"%i \t %f \t %f \t %f \t %f \t %i \n",x1, obstacles[x1][i1][0], obstacles[x1][i1][1], obstacles[x1][i1][2], obstacles[x1][i1][3], counts[x1][i1]);
-			fclose(yzslice);
+vector<float> cspaceconverter::get_configurations_as_vectors(){
+	vector<float> output(0);
+	pthread_mutex_lock(&configuration_lock);
 			
-			}
-			printf("slice %i, %i of 22 done after %f seconds \n",i ,j,difftime( time(0), start));
-
-		}
-
-	//}
+	std::list<vector<float> >::iterator iter;
+	for(iter = configuration_list.begin(); iter != configuration_list.end(); iter++)	
+		for (int i = 0; i < iter->size(); i++)
+			output.push_back((*iter)[i]);
+	
+	pthread_mutex_unlock(&configuration_lock);
+	return output;
 }
-
-
-void rearrangeSlicesByYZ(){
-	printf("rearranging slices\n");
-	/*vector<FILE *> yzslices(61*21); 
-	for (int i = 0; i < 61; i++)
-		for(int j = 0; j < 21; j++)
-			yzslices[i*21+j] = fopen(("/home/andrej/Workspace/cspoutput/yzslices/slice_"+boost::to_string(i)+"_"+boost::to_string(j)+".dat").c_str(),"w");*/
-	
-	FILE * yzslice;
-	
-	std::string line;
-	int x, y, z;
-	float a, b;
-	KDL::JntArray point(4);
-	for (int i = 0; i < THREADNUMBER; i ++){
-		printf("at file %i currently  \n",i);
-		std::ifstream  slicefile(("/home/andrej/Workspace/cspoutput/sliceraster/slice_"+boost::to_string(i)+".dat").c_str(), ios::in);
-		//std::cout << "Error: " << strerror(errno);
-		
-		while (std::getline(slicefile, line))
-		{	
-			//printf(line.c_str());
-			std::istringstream iss(line);
-			if (!(iss >> x >> y >> z >> a >> point(0) >> point(1) >> point(2) >> point(3) >> b)) { printf("error: cannot read line!\n");break; }
-			//fprintf(yzslices[y*21+z],"%i \t %f \t %f \t %f \t %f \n", x, point(0), point(1), point(2), point(3));
-			yzslice = fopen(("/home/andrej/Workspace/cspoutput/yzslices/slice_"+boost::to_string(y)+"_"+boost::to_string(z)+".dat").c_str(),"a");
-			fprintf(yzslice,"%i \t %f \t %f \t %f \t %f \n", x, point(0), point(1), point(2), point(3));
-			fclose(yzslice);
-		}
-	}
-	/*for (volatile int i = 0; i < 61*21; i++)
-		fclose(yzslices[i]);*/
-}
-
-void* calculateObstacleCenters(void *slicenumber){
-	int i1 = *(int*)slicenumber;
-	
-	vector< vector< vector< float > > > obstacles(62*62*22);
-	for (int i = 0; i < 62*62*22; i++){
-		obstacles[i].resize(0);
-		//obstacles[i][0].resize(5); //downsampled Obstacle points are to be 4 coords + number of points already folded into this one
-	}
-	std::ifstream  slicefile(("/home/andrej/Workspace/cspoutput/slices/slice_"+boost::to_string(i1)+".dat").c_str());
-	std::string line;
-	std::getline(slicefile,line); // get rid of the slice file header
-	float x, y, z;
-	KDL::JntArray point(4);
-	while (std::getline(slicefile, line))
-	{
-		std::istringstream iss(line);
-		
-		if (!(iss >> x >> y >> z >> point(0) >> point(1) >> point(2) >> point(3) )) { break; }
-		
-		int x_index = floor((x+0.3)*61/0.6);
-		if (x_index < 0 || x_index >= 62) printf("ERROR: x_index is %i \n", x_index);
-		
-		int y_index = floor((y+0.15)*61/0.6);
-		if (y_index < 0 || y_index >= 62) printf("ERROR: y_index is %i \n", y_index);
-		
-		int z_index = floor((z)*21/0.2);
-		if (z_index < 0 || z_index >= 22) printf("ERROR: z_index is %i \n", z_index);
-		
-		int index = x_index*61+21 + y_index*21 + z_index;
-		int count;
-		bool found = false;
-		for (int i = 0; i < obstacles[index].size(); i++){
-			if (specialdistance(point, obstacles[index][i]) < 0.1 && !found)
-				{
-					count = obstacles[index][i][4];
-					for (int j = 0; j < 4; j++)
-						obstacles[index][i][j] = (obstacles[index][i][j]+point(j)/((float)count))*((float)count)/((float)count+1);
-					obstacles[index][i][4]++;
-					found = true;
-				}
-		}
-		if(!found){
-			int size = obstacles[index].size();
-			obstacles[index].resize(size +1);
-			obstacles[index][size].resize(5);
-			for (int j = 0; j < 4; j++)
-				obstacles[index][size][j] = point(j);
-			obstacles[index][size][4] = 1;
-		}	
-	}
-	FILE * raster = fopen(("/home/andrej/Workspace/cspoutput/sliceraster/slice_"+boost::to_string(i1)+".dat").c_str(),"w");
-	for (int i = 0; i < 62; i++)
-		for (int j = 0; j < 62; j++)
-			for (int k = 0; k < 22; k++) {
-				int index = i*62+22 + j*22 + k;
-				int pointnumber = obstacles[index].size();
-				for (int l = 0; l < pointnumber; l++){
-					fprintf(raster,"%i \t %i \t %i \t %i \t",i, j, k, pointnumber);
-					fprintf(raster,"%f \t %f \t %f \t %f \t %f \n", obstacles[index][l][0] , obstacles[index][l][1] , obstacles[index][l][2] , obstacles[index][l][3] , obstacles[index][l][4] );
-					fflush(raster);
-				}
-			}
-	fclose(raster);
-	pthread_exit(NULL);
-	}
-void* runSlice(void *q3val){
-	// I cannot make runSlice() a member function of cspaceconverter under c++03 and ROS hydro does not support c++2011
-	// I need to initialise every part of cspaceconverter again =(
-	Chain KukaChain = KukaLWR_DHnew();
-	ChainFkSolverPos_recursive* kinematic_solver = new ChainFkSolverPos_recursive(KukaChain);
-	int jointNumber = KukaChain.getNrOfJoints();
-	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.15, 0.35) ) ;
-	int i1 = *(int*)q3val;
-	KDL::JntArray q(jointNumber);
-			q(2) = (-25.0f+(float)i1*0.5)*PI/30;//k*PI/30.0f;
-
-			q(4) = 0;//m*PI/30.0f;
-			q(5) = 0;//n*PI/30.0f;
-			q(6) = 0;//o*PI/30.0f;
-
-
-	vector< vector < float > > position;
-	vector<float> a;
-
-	FILE * slicefile = fopen(("/home/andrej/Workspace/cspoutput/slices/slice_"+boost::to_string(i1)+".dat").c_str(),"w");
-	fprintf(slicefile,"SLICEFILE %i, joint position: %f \n",i1,q(2));
-
-	for (float i = -29; i <= 29; i+=0.1)	//51
-	{
-		for (float j = -18; j <= 18; j+=0.1)	//37
-		//for (float k = -25; k <= 25; k+=0.5) //51
-		for (float l = -18; l <= 18; l+=0.1)	// 37
-		{
-			q(0) = i*PI/30.0f;
-			q(1) = j*PI/30.0f;
-
-			q(3) = l*PI/30.0f;
-
-			KDL::Frame cartpos;
-			kinematic_solver->JntToCart(q, cartpos);
-			KDL::Vector position = baseframe*cartpos.p;
-
-			/*
-			if (position.x() < -0.25 || position.x() > 0.2)
-				fprintf(slicefile,"X out of bounds: \t");
-			if (position.y() < -0.1 || position.y() > 0.4)
-				fprintf(slicefile,"Y out of bounds: \t");
-			if (position.z() < 0 || position.z() > 0.2)
-				fprintf(slicefile,"Z out of bounds: \t");
-			*/
-			if (!(position.x() < -0.3 || position.y() < -0.15 || position.z() < 0 || position.x() > 0.3 || position.y() > 0.45 || position.z() > 0.2))
-			fprintf(slicefile,"%f \t %f \t %f \t %f \t %f \t %f \t %f \n",position.x(), position.y(), position.z(),q(0),q(1),q(2),q(3));	
+vector<float> cspaceconverter::get_distances_as_vectors(){
+	vector<float> output(0);
+	pthread_mutex_lock(&configuration_lock);
 			
-			
-		}
-	printf("slice %i at %f percent \n", i1, ((float)i+29)*100.0f/58.0f);
-	}
-	pthread_exit(NULL);
+	std::list<float>::iterator iter;
+	for(iter = distances_list.begin(); iter != distances_list.end(); iter++)	
+		output.push_back(*iter);
+	
+	pthread_mutex_unlock(&configuration_lock);
+	return output;
+	
+	
 }
-void cspaceconverter::generate_points_data(KDL::Frame k) {
-	baseframe = k;
-
-
-
-
-	pthread_t threads[THREADNUMBER];
-	int **args = new int*[THREADNUMBER];
-	
-	for(int i = 0; i < THREADNUMBER; i++){
-		args[i]  = new int[1];
-		args[i][0] = i;
-		int rc = pthread_create(&threads[i], NULL, runSlice, (void*)args[i]);
-		//int rc = pthread_create(&threads[i], NULL, calculateObstacleCenters, (void*)args[i]);
-	}
-	for(int i = 0; i < THREADNUMBER; i++){
-		void **status;
-		int rc = pthread_join(threads[i],status);
-	}
-	for(int i = 0; i < THREADNUMBER; i++){
-		args[i]  = new int[1];
-		args[i][0] = i;
-		//int rc = pthread_create(&threads[i], NULL, runSlice, (void*)args[i]);
-		int rc = pthread_create(&threads[i], NULL, calculateObstacleCenters, (void*)args[i]);
-	}
-	for(int i = 0; i < THREADNUMBER; i++){
-		void **status;
-		int rc = pthread_join(threads[i],status);
-	}
-	
-	
-	rearrangeSlicesByYZ();
-	
-	for(int i = 0; i < THREADNUMBER; i++){
-		args[i]  = new int[1];
-		args[i][0] = i;
-		//int rc = pthread_create(&threads[i], NULL, runSlice, (void*)args[i]);
-		//int rc = pthread_create(&threads[i], NULL, calculateObstacleCenters, (void*)args[i]);
-		int rc = pthread_create(&threads[i], NULL, coarsenYZData, (void*)args[i]);
-		
-	}
-	pthread_t extrathreads[1]; //just for coarsenYZData
-	int * arg = new int;
-	arg[0] = THREADNUMBER;
-	pthread_create(&extrathreads[0], NULL, coarsenYZData, (void*)arg);
-	
-	for(int i = 0; i < THREADNUMBER; i++){
-		void **status;
-		int rc = pthread_join(threads[i],status);
-	}
-	
-	
-	void **status1;
-	int rc = pthread_join(extrathreads[0],status1);
-	
-	}
 vector<float> cspaceconverter::joint_to_cartesian(vector<float> jointvalues, int segmentnumber){
 	
 	//printf("parsing %i values for %i joints \n", jointvalues.size(), jointNumber);

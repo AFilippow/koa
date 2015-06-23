@@ -49,7 +49,7 @@
 #include "KukaLWR_DHnew.h"
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <time.h>
-
+#include <list>
 //THREADS!
 #include <pthread.h>
 #define PI 3.141562f
@@ -61,25 +61,57 @@
  */
 using namespace std;
 using namespace KDL;
+
+class cspaceconverter;
+struct lister_parameters{
+	pthread_mutex_t* list_lock;
+	pthread_mutex_t* position_lock;
+	pthread_mutex_t* configuration_lock;
+	vector<float>* position;
+	list<vector<float> >* obstacle_list;
+	list<vector<float> >* configuration_list;
+	list<float>* distances_list;
+	cspaceconverter* converter;
+	lister_parameters(cspaceconverter* par_csp, pthread_mutex_t* par_ll, pthread_mutex_t* par_pl, pthread_mutex_t* par_cl, vector<float>* par_pos, list<vector<float> >* par_list, list<vector<float> >* par_conf, list<float>* par_dist){
+		converter = par_csp;
+		list_lock = par_ll;
+		position_lock = par_pl;
+		configuration_lock = par_cl;
+		position = par_pos;
+		obstacle_list = par_list;
+		configuration_list = par_conf;
+		distances_list = par_dist;
+	}
+	
+};
+
 class cspaceconverter {
 	public:
 	
 	Chain KukaChain;
 	ChainFkSolverPos_recursive * kinematic_solver;
 	int jointNumber;
+	KDL::Frame baseframe;	
+	int max_list_size;
+	std::list<vector<float> > obstacle_list;
+	std::list<vector<float> > configuration_list;
+	std::list<float> distances_list;
+	vector<float> position;
+	pthread_mutex_t list_lock;
+	pthread_mutex_t position_lock;
+	pthread_mutex_t configuration_lock;
 	
-	
-	
-	vector< vector< vector< float > > > pointsData;
+	vector<float> get_configurations_as_vectors();
+	vector<float> get_distances_as_vectors();
+	void set_position(vector<float> par_pos);
+	void set_obstacles(vector<vector<float> > par_obst);
 	int examineDifference(vector<float> point1, vector<float> point2);
-	
-	//void *runSlice(void *q3val);
-	void generate_points_data(KDL::Frame baseframe);
+	void launch_obstacle_thread();
 	vector<float> joint_to_cartesian(vector<float> jointvalues){ return joint_to_cartesian(jointvalues,-1);}
 	vector<float> joint_to_cartesian(vector<float> jointvalues, int segmentnumber);
-	KDL::Frame baseframe;
+
 	cspaceconverter();
-	vector< vector< float > >  getCspaceObstacle(float x, float y, float z) {return pointsData[x*50*50 + y*50 + z];}
+	//vector< vector< float > >  getCspaceObstacle(float x, float y, float z) {return pointsData[x*50*50 + y*50 + z];}
 
 };
 

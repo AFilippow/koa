@@ -6,7 +6,7 @@
 #define ALPHA_V 1.0
 #define ALPHA_W 1.0
 
-#define LAMBDA 0.5
+#define LAMBDA 0.01
 #define BETA 2.0
 #define DISTANCE_SHORTENER 0.2//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
 #define CALCULATED_GRADIENT 1
@@ -40,6 +40,7 @@ class xDMP {
 		float get_w(int i, int j) {return w[i][j];}
 		void reset();
 		void init_dmp(int dim, std::vector<float> start, std::vector<float> goal, float total_t, float delta_t, float temp_scaling, int n_kernels, float width);
+		vector<float> avoid_obstacle_other_way( vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
 		vector<float> avoid_obstacle( vector<float> obstacle, vector<float> mobilePoint,  vector<float> speed, float distance, float tau);
 		// void set_weights_from_file(const char* file_name);
 		void calculate_one_step_dmp(float time_step);

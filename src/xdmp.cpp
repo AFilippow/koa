@@ -191,14 +191,8 @@ void xDMP::calculate_one_step_dmp(float t){
 			{
 				vector<float> o(obstacle.begin()+i, obstacle.begin()+i+dimensions);
 				printf("Vector o: %f \t %f \t %f \t %f \n", obstacle[i+0], obstacle[i+1], obstacle[i+2], obstacle[i+3]);
-				dz_addition = vector_sum(dz_addition, avoid_obstacle(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau));
-				//dz_addition = vector_sum(dz_addition, avoid_obstacle(o, y, currentMotion, distances[i/3]-DISTANCE_SHORTENER, tau));
-				//dz_addition = vector_sum(dz_addition, avoid_obstacle(o, y, persistent_direction_of_motion, distances[i/3]-DISTANCE_SHORTENER, tau));
-				
-				//float currentSpeed = vector_length(dy);
-				//vector<float> directionVector = scalar_product(currentSpeed / vector_length(vector_difference(g,y)),vector_difference(g,y));
-				//dz_addition = vector_sum(dz_addition, avoid_obstacle(o, y, directionVector, distances[i/3]-DISTANCE_SHORTENER, tau));
-
+				dz_addition = vector_sum(dz_addition, avoid_obstacle(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau)); ///good old one
+				//dz_addition = vector_sum(dz_addition,avoid_obstacle_other_way(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau)); ///new experimental one 
 
 				fprintf(positionAndDistanceOutput, "%f \t", distances[i/dimensions]);
 				fprintf(obstacleList, "%i \t %f \t %f \t %f \n", timestep, o[0], o[1], o[2]);
@@ -328,6 +322,25 @@ vector<float> xDMP::mat_gradient(vector<float> obstacle, vector<float> mobilePoi
 
 
 
+vector<float> xDMP::avoid_obstacle_other_way( vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau){
+	float force_factor = LAMBDA*tau/distance;
+
+	float euc_distance = vector_length(vector_difference(obstacle, mobilePoint));
+	for (int i = 0; i < dimensions; i++){
+			//deviation[i]*=0.95;
+		deviation[i]=force_factor*0.05*(-obstacle[i]+mobilePoint[i])/euc_distance;
+		}
+		
+	for(int i = 0; i < dimensions; i++)
+		fprintf(verbose, "%f \t", y[i]);
+	for(int i = 0; i < dimensions; i++)
+		fprintf(verbose, "%f \t", mobilePoint[i]-obstacle[i]);
+	for(int i = 0; i < dimensions; i++)
+		fprintf(verbose, "%f \t", obstacle[i]);
+	fprintf(verbose, "%f \t %f \n", euc_distance, distance );
+	
+	return deviation;
+}
 vector<float> xDMP::avoid_obstacle( vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau)
 {
 	for (int i = 0; i < dimensions; i++)
