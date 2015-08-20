@@ -6,9 +6,9 @@
 #define ALPHA_V 1.0
 #define ALPHA_W 1.0
 
-#define LAMBDA 0.01
+//#define LAMBDA 0.5
 #define BETA 2.0
-#define DISTANCE_SHORTENER 0.2//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
+#define DISTANCE_SHORTENER 0.01//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
 #define CALCULATED_GRADIENT 1
 class xDMP {
 	public:
@@ -35,7 +35,7 @@ class xDMP {
 		std::vector<float> get_f() {return f;}
 		float get_v() {return v;}
 		std::vector<float> get_r() {return r;}
-		std::vector<float> get_y() {return y;}
+		std::vector<float> get_y();
 		std::vector<float> get_z() {return z;}
 		float get_w(int i, int j) {return w[i][j];}
 		void reset();
@@ -47,9 +47,10 @@ class xDMP {
 		float repulsive_field_value(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance);
 		vector<float> gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
 		vector<float> mat_gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
-	
+	float LAMBDA;
 	float motion_persistence_weight;
 	vector<float> dy;
+	vector<float> dz_previous;
 	vector<float> persistent_deviation;
 	vector<float> persistent_direction_of_motion;
 	vector<float> deviation;
@@ -66,10 +67,14 @@ class xDMP {
 	FILE * verboseAvoidance;
 	FILE * goalfunction;
 	FILE * verbose;
-   private:
-      int dimensions;
+	FILE * forces;
+	FILE * internaldistances;
+	FILE * angleanddistance;
+      int timestep;
       std::vector<float> s;
       std::vector<float> g;
+   private:
+      int dimensions;
       float T;
       float dt;
       float tau;
@@ -88,6 +93,6 @@ class xDMP {
       std::vector<float> z;
       std::vector<float> trackingPoints;
       std::vector<float> distances;
-      int timestep;
+
 };
 

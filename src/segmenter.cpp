@@ -46,7 +46,7 @@ int pclsegmenter::segment()
 	pcl::PassThrough<pcl::PointXYZ> pass;
 	pass.setInputCloud (rawCloud);
 	pass.setFilterFieldName ("z");
-	pass.setFilterLimits (0.01, 0.9);
+	pass.setFilterLimits (-0.1, 0.9);
 	pass.filter (*rawCloud);
 	pass.setInputCloud (rawCloud);
 	pass.setFilterFieldName ("x");
@@ -340,7 +340,21 @@ float pclsegmenter::distanceOfObstacleToPosition(pcl::PointXYZRGB obstacleCenter
 	return distance;
 
 }
-
+void pclsegmenter::setPosition(vector<float> par_vec){
+		if (par_vec.size() < 3) {
+		std::cout << "Error: too small vector passed to pclsegmenter::setPosition(vector<float> par_vec). Needs to be of size >= 3 \n";	
+		return;
+		}
+		position.x = par_vec[0];
+		position.y = par_vec[1];
+		position.z = par_vec[2];
+	}
+void pclsegmenter::setPosition(float par_x, float par_y, float par_z){
+		position.x = par_x;
+		position.y = par_y;
+		position.z = par_z;		
+	}
+	
 void pclsegmenter::excludeObstacle(mPointCloudTypeColor::Ptr cCloud, mPointType pos)
 {
 	if (cCloud->points.size() < 10) return;

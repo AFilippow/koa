@@ -24,7 +24,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 
 #include <sstream>
-
+#include <vector>
 #include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>
 #include <pcl/search/kdtree.h>
@@ -53,7 +53,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> mPointCloudType;
 typedef pcl::PointCloud<pcl::PointXYZRGB> mPointCloudTypeColor;
 typedef pcl::PointXYZ mPointType; 
 typedef pcl::PointXYZRGB mPointTypeColor; 
-
+using namespace std;
 class pclsegmenter {
 public:
 	
@@ -80,6 +80,8 @@ public:
 	void excludeObstacle(mPointType paramPos){excludeObstacle(coloredCloud, paramPos);}	
 	int findCentersOfMass();
 	int findClosestPoints();
+	void setPosition(vector<float> par_vec);
+	void setPosition(float par_x, float par_y, float par_z);
 
 
 };

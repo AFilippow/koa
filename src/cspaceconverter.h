@@ -97,19 +97,27 @@ class cspaceconverter {
 	std::list<vector<float> > configuration_list;
 	std::list<float> distances_list;
 	vector<float> position;
+	int pointsconsidered;
 	pthread_mutex_t list_lock;
 	pthread_mutex_t position_lock;
 	pthread_mutex_t configuration_lock;
-	
+	float* lowerbounds, *upperbounds;
+	float xycoarseness, zcoarseness;
 	vector<float> get_configurations_as_vectors();
 	vector<float> get_distances_as_vectors();
 	void set_position(vector<float> par_pos);
 	void set_obstacles(vector<vector<float> > par_obst);
 	int examineDifference(vector<float> point1, vector<float> point2);
 	void launch_obstacle_thread();
+	vector<float> get_safest_configuration(vector<float> par_position, vector< vector <float> > obstacles);
+	vector<float> joint_to_complete_cartesian(vector<float> jointvalues, int segmentnumber);
 	vector<float> joint_to_cartesian(vector<float> jointvalues){ return joint_to_cartesian(jointvalues,-1);}
 	vector<float> joint_to_cartesian(vector<float> jointvalues, int segmentnumber);
-
+	vector<float> get_smoothest_configuration(vector<float> par_vector);
+	KDL::Vector joint_to_KDLvector(vector<float> jointvalues, int segmentnumber);
+	KDL::Vector joint_to_KDLvector(vector<float> jointvalues){ return joint_to_KDLvector(jointvalues,-1);}
+	KDL::Frame joint_to_KDLFrame(vector<float> jointvalues, int segmentnumber);
+	KDL::Frame joint_to_KDLFrame(vector<float> jointvalues){return joint_to_KDLFrame(jointvalues,-1);}
 	cspaceconverter();
 	//vector< vector< float > >  getCspaceObstacle(float x, float y, float z) {return pointsData[x*50*50 + y*50 + z];}
 
