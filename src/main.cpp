@@ -505,7 +505,7 @@ int main(int argc, char** argv)
 		
 		
 		
-		if(t<=1.0*tau*T && active = true) //run cycle
+		if(t<=1.0*tau*T && active == true) //run cycle
 		{
 			
 			y=dmp.get_y();
