@@ -6,6 +6,8 @@ FILE(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/vectormath.cpp.o"
   "CMakeFiles/main.dir/src/cspaceconverter.cpp.o"
   "CMakeFiles/main.dir/src/KukaLWR_DHnew.cpp.o"
+  "CMakeFiles/main.dir/src/rosComm.cpp.o"
+  "CMakeFiles/main.dir/src/obstacleSelector.cpp.o"
   "../bin/main.pdb"
   "../bin/main"
 )

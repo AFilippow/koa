@@ -1,5 +1,5 @@
 <launch>
-        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="valgrind">
+        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="valgrind --track-origins=yes --log-file='/home/andrej/Workspace/valgout.txt'">
                 <param name="source" value="vrep/kinect"/>
                 <param name="tracker_topic" value="kinect"/>
                 <param name="perfect_Obstacle" value="false"/> 

@@ -5,6 +5,8 @@
                 <param name="perfect_Obstacle" value="true"/> 
                <param name="fixed_cloud" value="false"/> 
                <param name="no_Obstacle" value="false"/> 
+               <param name="goal_topic" value="goal"/>  
+                <param name="output_topic" value="jointArray"/>  
 	    </node>   
 </launch>
 

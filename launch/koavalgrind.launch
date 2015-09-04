@@ -1,9 +1,11 @@
 <launch>
-        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="valgrind --track-origins=yes --log-file='/home/andrej/Workspace/valgout.txt'">
+        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="valgrind --track-origins=yes --read-inline-info=yes --log-file='/home/andrej/Workspace/valgout.txt'">
                 <param name="source" value="vrep/kinect"/>
                 <param name="tracker_topic" value="kinect"/>
                 <param name="perfect_Obstacle" value="false"/> 
                 <param name="fixed_cloud" value="true"/> 
+                <param name="goal_topic" value="goal"/>  
+                <param name="output_topic" value="jointArray"/>  
 	    </node>   
 </launch>
 

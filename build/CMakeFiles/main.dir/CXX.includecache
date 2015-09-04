@@ -167,12 +167,12 @@ tf/transform_broadcaster.h
 -
 tf/transform_listener.h
 -
-segmenter.h
-/home/andrej/Workspace/koa/src/segmenter.h
+obstacleSelector.h
+/home/andrej/Workspace/koa/src/obstacleSelector.h
 xdmp.h
 /home/andrej/Workspace/koa/src/xdmp.h
-vrepComm.h
-/home/andrej/Workspace/koa/src/vrepComm.h
+rosComm.h
+/home/andrej/Workspace/koa/src/rosComm.h
 time.h
 -
 cspaceconverter.h
@@ -180,7 +180,7 @@ cspaceconverter.h
 vectormath.h
 /home/andrej/Workspace/koa/src/vectormath.h
 
-/home/andrej/Workspace/koa/src/segmenter.h
+/home/andrej/Workspace/koa/src/obstacleSelector.h
 iostream
 -
 sys/time.h
@@ -247,6 +247,38 @@ pcl/filters/statistical_outlier_removal.h
 -
 pcl/filters/passthrough.h
 -
+ros/package.h
+-
+ros/ros.h
+-
+
+/home/andrej/Workspace/koa/src/rosComm.h
+ros/package.h
+-
+ros/ros.h
+-
+sensor_msgs/PointCloud2.h
+-
+geometry_msgs/Point.h
+-
+std_msgs/Int32.h
+-
+std_msgs/Float32.h
+-
+std_msgs/Float32MultiArray.h
+-
+std_msgs/String.h
+-
+tf/transform_listener.h
+-
+tf/transform_datatypes.h
+-
+tf/transform_broadcaster.h
+-
+string
+-
+vector
+-
 
 /home/andrej/Workspace/koa/src/vectormath.h
 vector
@@ -264,32 +296,6 @@ cmath
 iostream
 -
 fstream
--
-
-/home/andrej/Workspace/koa/src/vrepComm.h
-ros/package.h
--
-ros/ros.h
--
-sensor_msgs/PointCloud2.h
--
-geometry_msgs/Point.h
--
-std_msgs/Int32.h
--
-std_msgs/Float32.h
--
-std_msgs/String.h
--
-tf/transform_listener.h
--
-tf/transform_datatypes.h
--
-tf/transform_broadcaster.h
--
-string
--
-vector
 -
 
 /home/andrej/Workspace/koa/src/xdmp.h
@@ -1738,6 +1744,24 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
+/opt/ros/hydro/include/std_msgs/Float32MultiArray.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+std_msgs/MultiArrayLayout.h
+-
+
 /opt/ros/hydro/include/std_msgs/Header.h
 string
 -
@@ -1768,6 +1792,40 @@ ros/serialization.h
 ros/builtin_message_traits.h
 -
 ros/message_operations.h
+-
+
+/opt/ros/hydro/include/std_msgs/MultiArrayDimension.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+
+/opt/ros/hydro/include/std_msgs/MultiArrayLayout.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+std_msgs/MultiArrayDimension.h
 -
 
 /opt/ros/hydro/include/std_msgs/String.h
@@ -2171,6 +2229,8 @@ src/Cholesky/LLT.h
 /usr/include/eigen3/Eigen/src/Cholesky/LLT.h
 src/Cholesky/LDLT.h
 /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h
+src/Cholesky/LLT_MKL.h
+/usr/include/eigen3/Eigen/src/Cholesky/LLT_MKL.h
 src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
 
@@ -2179,6 +2239,10 @@ src/Core/util/DisableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
 src/Core/util/Macros.h
 /usr/include/eigen3/Eigen/src/Core/util/Macros.h
+complex
+-
+src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Core/util/MKL_support.h
 malloc.h
 -
 emmintrin.h
@@ -2206,8 +2270,6 @@ cstddef
 cstdlib
 -
 cmath
--
-complex
 -
 cassert
 -
@@ -2347,24 +2409,24 @@ src/Core/Flagged.h
 /usr/include/eigen3/Eigen/src/Core/Flagged.h
 src/Core/ProductBase.h
 /usr/include/eigen3/Eigen/src/Core/ProductBase.h
-src/Core/Product.h
-/usr/include/eigen3/Eigen/src/Core/Product.h
+src/Core/GeneralProduct.h
+/usr/include/eigen3/Eigen/src/Core/GeneralProduct.h
 src/Core/TriangularMatrix.h
 /usr/include/eigen3/Eigen/src/Core/TriangularMatrix.h
 src/Core/SelfAdjointView.h
 /usr/include/eigen3/Eigen/src/Core/SelfAdjointView.h
-src/Core/SolveTriangular.h
-/usr/include/eigen3/Eigen/src/Core/SolveTriangular.h
+src/Core/products/GeneralBlockPanelKernel.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
 src/Core/products/Parallelizer.h
 /usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h
 src/Core/products/CoeffBasedProduct.h
 /usr/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h
-src/Core/products/GeneralBlockPanelKernel.h
-/usr/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
 src/Core/products/GeneralMatrixVector.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h
 src/Core/products/GeneralMatrixMatrix.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h
+src/Core/SolveTriangular.h
+/usr/include/eigen3/Eigen/src/Core/SolveTriangular.h
 src/Core/products/GeneralMatrixMatrixTriangular.h
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h
 src/Core/products/SelfadjointMatrixVector.h
@@ -2401,6 +2463,24 @@ src/Core/ArrayBase.h
 /usr/include/eigen3/Eigen/src/Core/ArrayBase.h
 src/Core/ArrayWrapper.h
 /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h
+src/Core/products/GeneralMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h
+src/Core/products/GeneralMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector_MKL.h
+src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+src/Core/products/SelfadjointMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h
+src/Core/products/SelfadjointMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h
+src/Core/products/TriangularMatrixMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h
+src/Core/products/TriangularMatrixVector_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector_MKL.h
+src/Core/products/TriangularSolverMatrix_MKL.h
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h
+src/Core/Assign_MKL.h
+/usr/include/eigen3/Eigen/src/Core/Assign_MKL.h
 src/Core/GlobalFunctions.h
 /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h
 src/Core/util/ReenableStupidWarnings.h
@@ -2467,6 +2547,8 @@ Householder
 /usr/include/eigen3/Eigen/Householder
 LU
 /usr/include/eigen3/Eigen/LU
+Geometry
+/usr/include/eigen3/Eigen/Geometry
 src/Eigenvalues/Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
 src/Eigenvalues/RealSchur.h
@@ -2485,6 +2567,12 @@ src/Eigenvalues/ComplexEigenSolver.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
 src/Eigenvalues/MatrixBaseEigenvalues.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
+src/Eigenvalues/RealSchur_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur_MKL.h
+src/Eigenvalues/ComplexSchur_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur_MKL.h
+src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
 src/Core/util/ReenableStupidWarnings.h
 /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
 
@@ -2573,6 +2661,8 @@ src/LU/FullPivLU.h
 /usr/include/eigen3/Eigen/src/LU/FullPivLU.h
 src/LU/PartialPivLU.h
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h
+src/LU/PartialPivLU_MKL.h
+/usr/include/eigen3/Eigen/src/LU/PartialPivLU_MKL.h
 src/LU/Determinant.h
 /usr/include/eigen3/Eigen/src/LU/Determinant.h
 src/LU/Inverse.h
@@ -2603,6 +2693,10 @@ src/QR/FullPivHouseholderQR.h
 /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h
 src/QR/ColPivHouseholderQR.h
 /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h
+src/QR/HouseholderQR_MKL.h
+/usr/include/eigen3/Eigen/src/QR/HouseholderQR_MKL.h
+src/QR/ColPivHouseholderQR_MKL.h
+/usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR_MKL.h
 src/Eigen2Support/QR.h
 /usr/include/eigen3/Eigen/src/Eigen2Support/QR.h
 src/Core/util/ReenableStupidWarnings.h
@@ -2623,6 +2717,8 @@ src/misc/Solve.h
 /usr/include/eigen3/Eigen/src/misc/Solve.h
 src/SVD/JacobiSVD.h
 /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h
+src/SVD/JacobiSVD_MKL.h
+/usr/include/eigen3/Eigen/src/SVD/JacobiSVD_MKL.h
 src/SVD/UpperBidiagonalization.h
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h
 src/Eigen2Support/SVD.h
@@ -2641,6 +2737,12 @@ src/StlSupport/StdVector.h
 /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h
 
 /usr/include/eigen3/Eigen/src/Cholesky/LLT.h
+
+/usr/include/eigen3/Eigen/src/Cholesky/LLT_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Cholesky/Eigen/src/Core/util/MKL_support.h
+iostream
+-
 
 /usr/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h
 
@@ -2675,6 +2777,8 @@ src/StlSupport/StdVector.h
 /usr/include/eigen3/Eigen/src/Core/ArrayWrapper.h
 
 /usr/include/eigen3/Eigen/src/Core/Assign.h
+
+/usr/include/eigen3/Eigen/src/Core/Assign_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/BandMatrix.h
 
@@ -2718,6 +2822,8 @@ src/StlSupport/StdVector.h
 
 /usr/include/eigen3/Eigen/src/Core/Fuzzy.h
 
+/usr/include/eigen3/Eigen/src/Core/GeneralProduct.h
+
 /usr/include/eigen3/Eigen/src/Core/GenericPacketMath.h
 
 /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h
@@ -2751,8 +2857,6 @@ src/StlSupport/StdVector.h
 /usr/include/eigen3/Eigen/src/Core/PermutationMatrix.h
 
 /usr/include/eigen3/Eigen/src/Core/PlainObjectBase.h
-
-/usr/include/eigen3/Eigen/src/Core/Product.h
 
 /usr/include/eigen3/Eigen/src/Core/ProductBase.h
 
@@ -2816,13 +2920,23 @@ src/StlSupport/StdVector.h
 
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h
 
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h
+
+/usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/Parallelizer.h
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h
 
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h
 
@@ -2830,9 +2944,15 @@ src/StlSupport/StdVector.h
 
 /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h
 
+/usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector_MKL.h
+
 /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h
+
+/usr/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h
 
 /usr/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h
 
@@ -2843,6 +2963,12 @@ src/StlSupport/StdVector.h
 /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
 
 /usr/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h
+
+/usr/include/eigen3/Eigen/src/Core/util/MKL_support.h
+mkl.h
+-
+mkl_lapacke.h
+-
 
 /usr/include/eigen3/Eigen/src/Core/util/Macros.h
 cstdlib
@@ -2951,44 +3077,34 @@ ParametrizedLine.h
 /usr/include/eigen3/Eigen/src/Eigen2Support/VectorBlock.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/././EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/././HessenbergDecomposition.h
-
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/././EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/././HessenbergDecomposition.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./ComplexSchur.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./RealSchur.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
 
@@ -2997,16 +3113,20 @@ ParametrizedLine.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./HessenbergDecomposition.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h
 
+/usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h
-./EigenvaluesCommon.h
-/usr/include/eigen3/Eigen/src/Eigenvalues/./EigenvaluesCommon.h
 ./Tridiagonalization.h
 /usr/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/Eigenvalues/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
 
@@ -3056,15 +3176,31 @@ ParametrizedLine.h
 
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h
 
+/usr/include/eigen3/Eigen/src/LU/PartialPivLU_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/LU/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h
 
 /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h
+
+/usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/QR/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h
 
 /usr/include/eigen3/Eigen/src/QR/HouseholderQR.h
 
+/usr/include/eigen3/Eigen/src/QR/HouseholderQR_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/QR/Eigen/src/Core/util/MKL_support.h
+
 /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h
+
+/usr/include/eigen3/Eigen/src/SVD/JacobiSVD_MKL.h
+Eigen/src/Core/util/MKL_support.h
+/usr/include/eigen3/Eigen/src/SVD/Eigen/src/Core/util/MKL_support.h
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h
 

@@ -1,9 +1,11 @@
 <launch>
         <node pkg="koa" name="main" type="main" output="screen">
-                <param name="source" value="vrep/kinect"/>
+                <param name="source" value="other/TODO"/>
                 <param name="tracker_topic" value="kinect"/>
                 <param name="perfect_Obstacle" value="false"/>  
                 <param name="fixed_cloud" value="false"/>  
+                <param name="goal_topic" value="goal"/>  
+                <param name="output_topic" value="jointArray"/>  
 	    </node>   
 </launch>
 
