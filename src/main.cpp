@@ -263,10 +263,10 @@ void getLiveObstacleData(float t){
 		dist.push_back(oSelect.distances[i]);
 
 	}
-	/*obst.push_back(rsy[0]);
+	obst.push_back(rsy[0]);
 	obst.push_back(rsy[1]);
 	obst.push_back(0.01);
-	dist.push_back(rsy[2]-0.01);*/
+	dist.push_back(rsy[2]-0.01);
 }
 
 
