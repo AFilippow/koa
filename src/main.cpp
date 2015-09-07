@@ -447,14 +447,22 @@ mPointCloudType::Ptr obstacles_as_cloud(){
 	}
 	return output;
 }
-void goal_callback(const geometry_msgs::Point inputROSMsg_tracker){
+void goal_callback(const sensor_msgs::PointCloud2 inputROSMsg_tracker){
 	
+	float pointnumber = 0;
 	vector< float> new_goal(3);
-	new_goal[0] = inputROSMsg_tracker.x;
-	new_goal[1] = inputROSMsg_tracker.y;
-	new_goal[2] = inputROSMsg_tracker.z;
-
+	pcl::PointCloud<pcl::PointXYZL>::Ptr cloudmessage;
+	pcl::fromROSMsg ( inputROSMsg_tracker,*cloudmessage);
 	
+	for (int i = 0; i < cloudmessage->points.size(); i++){
+		new_goal[0] += cloudmessage->points[i].x;
+		new_goal[1] += cloudmessage->points[i].y;
+		new_goal[2] += cloudmessage->points[i].z;
+		pointnumber++;
+	}
+	new_goal[0] = new_goal[0]/pointnumber;
+	new_goal[1] = new_goal[1]/pointnumber;
+	new_goal[2] = new_goal[2]/pointnumber;
 	if (oSelect.obstacles.size() > 0)
 		e = CSP->get_safest_configuration(new_goal, oSelect.obstacles);
 	else
@@ -499,7 +507,7 @@ int main(int argc, char** argv)
 	//nh.getParam ("csp_path", csp_path_);
 	oSelect.subscribe(nh, "/"+source_+"/"+sim_topic_);
 	ros::Publisher output = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 10);
-	ros::Subscriber goal = nh.subscribe<geometry_msgs::Point>("/"+source_+"/"+goal_topic_, 1, goal_callback);
+	ros::Subscriber goal = nh.subscribe<sensor_msgs::PointCloud2>("/"+source_+"/"+goal_topic_, 1, goal_callback);
 	//ros::Subscriber position = nh.subscribe<geometry_msgs::Float32MultiArray>(par_topic, 1, pos_callback);
 	
 	ros::Rate r(30); 
