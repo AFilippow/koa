@@ -463,6 +463,10 @@ void goal_callback(const sensor_msgs::PointCloud2 inputROSMsg_tracker){
 	new_goal[0] = new_goal[0]/pointnumber;
 	new_goal[1] = new_goal[1]/pointnumber;
 	new_goal[2] = new_goal[2]/pointnumber;
+	///remove this after the point cloud starts arriving correctly oriented
+	new_goal[0] = 0.2;
+	new_goal[1] = 0.2;
+	new_goal[2] = 0.1;
 	if (oSelect.obstacles.size() > 0)
 		e = CSP->get_safest_configuration(new_goal, oSelect.obstacles);
 	else
