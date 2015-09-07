@@ -406,7 +406,9 @@ void find_conf(int type){
 	}
 	//get s:
 	s.resize(0);
-	while (s.size() < 3){
+	int i = 0;
+	while (s.size() < 3 && i < 10){
+		i++;
 		if (type == 0){
 			s = CSP->get_smoothest_configuration(rs);
 			//printf("Set s w.o. obstacle to %f, %f, %f, %f, corr. to point %f, %f, %f\n", s[0], s[1], s[2], s[3], rs[0], rs[1], rs[2]);
@@ -420,7 +422,8 @@ void find_conf(int type){
 	//get e:
 	e.resize(0);
 	//printf("Searching end configuration ");
-	while(e.size() < 3){
+	while(e.size() < 3 && i < 10){
+		i++;
 		//printf(".");
 		if (obst.size() > 1)
 			e = CSP->get_safest_configuration(re, par_obst);
