@@ -10,6 +10,7 @@
 #include <pcl/ros/conversions.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl_ros/transforms.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 // ROS
 #include <ros/package.h>
@@ -526,7 +527,10 @@ int main(int argc, char** argv)
 	//Comm initialisation
 	rosComm rcom(&nh, output_topic_);	
 	tf::TransformBroadcaster br;
-	
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+	viewer = boost::make_shared<pcl::visualization::PCLVisualizer> ("obstacle cloud viewer");
+	if(!viewer->updatePointCloud(oSelect.fullCloud, "raw_cloud"))
+          viewer->addPointCloud(oSelect.fullCloud, "raw_cloud");
 	
 	/*
 	listener = new   tf::TransformListener;
