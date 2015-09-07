@@ -52,8 +52,8 @@ void obstacleSelector::callback(const sensor_msgs::PointCloud2 inputROSMsg_track
 	sor.filter (*fullCloud);*/
 	currKeyFrameID=fullCloud->header.seq;
 	
-		if(!viewer->updatePointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud"))
-          viewer->addPointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud");
+		if(!viewer->updatePointCloud<pcl::PointXYZL>(fullCloud, "raw_cloud"))
+          viewer->addPointCloud<pcl::PointXYZL>(fullCloud, "raw_cloud");
 }
 
 

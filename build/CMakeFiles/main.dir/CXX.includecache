@@ -145,8 +145,6 @@ boost/thread/mutex.hpp
 -
 sys/time.h
 -
-pcl/visualization/pcl_visualizer.h
--
 ../../opt/ros/hydro/include/ros/init.h
 -
 sstream
@@ -181,6 +179,10 @@ cspaceconverter.h
 /home/andrej/Workspace/koa/src/cspaceconverter.h
 vectormath.h
 /home/andrej/Workspace/koa/src/vectormath.h
+
+/home/andrej/Workspace/koa/src/obstacleSelector.cpp
+obstacleSelector.h
+/home/andrej/Workspace/koa/src/obstacleSelector.h
 
 /home/andrej/Workspace/koa/src/obstacleSelector.h
 iostream
@@ -252,6 +254,8 @@ pcl/filters/passthrough.h
 ros/package.h
 -
 ros/ros.h
+-
+pcl/visualization/pcl_visualizer.h
 -
 
 /home/andrej/Workspace/koa/src/rosComm.h
