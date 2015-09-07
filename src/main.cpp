@@ -824,14 +824,15 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "koa");
 	ros::NodeHandle nh("~");  
 	initGlobalParams(argc, argv);
-	std::string source_, sim_topic_;
+	std::string source_, sim_topic_, tracker_topic_;
 	
 	nh.getParam ("source", source_);
 	nh.getParam ("sim_topic", sim_topic_);   
 	nh.getParam ("perfect_Obstacle", perfectObstacle);
 	nh.getParam ("no_Obstacle", mode);	
 	nh.getParam ("fixed_cloud", fixedcloud);
-	ros::Subscriber sub_sim = nh.subscribe<sensor_msgs::PointCloud2>("/"+source_+"/"+ sim_topic_, 1, callback);
+	nh.getParam ("tracker_topic", tracker_topic_);
+	ros::Subscriber sub_sim = nh.subscribe<sensor_msgs::PointCloud2>("/"+source_+"/"+ tracker_topic_, 1, callback);
 	ros::Publisher output = nh.advertise<sensor_msgs::PointCloud2>("segmentedOutput", 10);
 	ros::Publisher output2 = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 10);
 	
