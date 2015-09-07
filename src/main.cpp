@@ -529,8 +529,8 @@ int main(int argc, char** argv)
 	tf::TransformBroadcaster br;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 	viewer = boost::make_shared<pcl::visualization::PCLVisualizer> ("obstacle cloud viewer");
-	if(!viewer->updatePointCloud(oSelect.fullCloud, "raw_cloud"))
-          viewer->addPointCloud(oSelect.fullCloud, "raw_cloud");
+	if(!viewer->updatePointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud"))
+          viewer->addPointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud");
 	
 	/*
 	listener = new   tf::TransformListener;

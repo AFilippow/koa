@@ -10,10 +10,6 @@
 kdl/chain.hpp
 -
 
-/home/andrej/Workspace/koa/src/cspaceconverter.cpp
-cspaceconverter.h
-/home/andrej/Workspace/koa/src/cspaceconverter.h
-
 /home/andrej/Workspace/koa/src/cspaceconverter.h
 iostream
 -
@@ -123,6 +119,8 @@ pcl/filters/voxel_grid.h
 -
 pcl_ros/transforms.h
 -
+pcl/visualization/pcl_visualizer.h
+-
 ros/package.h
 -
 ros/ros.h
@@ -183,10 +181,6 @@ cspaceconverter.h
 /home/andrej/Workspace/koa/src/cspaceconverter.h
 vectormath.h
 /home/andrej/Workspace/koa/src/vectormath.h
-
-/home/andrej/Workspace/koa/src/obstacleSelector.cpp
-obstacleSelector.h
-/home/andrej/Workspace/koa/src/obstacleSelector.h
 
 /home/andrej/Workspace/koa/src/obstacleSelector.h
 iostream
