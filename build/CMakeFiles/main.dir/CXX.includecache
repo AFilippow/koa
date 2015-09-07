@@ -184,6 +184,10 @@ cspaceconverter.h
 vectormath.h
 /home/andrej/Workspace/koa/src/vectormath.h
 
+/home/andrej/Workspace/koa/src/obstacleSelector.cpp
+obstacleSelector.h
+/home/andrej/Workspace/koa/src/obstacleSelector.h
+
 /home/andrej/Workspace/koa/src/obstacleSelector.h
 iostream
 -

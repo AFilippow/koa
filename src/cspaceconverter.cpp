@@ -339,7 +339,7 @@ vector<float> cspaceconverter::get_smoothest_configuration(vector<float> par_vec
 	vector<float> output;
 	if (!slicefile)
 	{
-		printf("error opening file %i, %i, %i\n", binned_vector[0], binned_vector[1], binned_vector[2]);
+		printf("error opening file %i, %i, %i, par vector is %f, %f, %f\n", binned_vector[0], binned_vector[1], binned_vector[2], par_vector[0], par_vector[1] ,par_vector[2]);
 		return output;
 	}
 	int pointscontrolled;
