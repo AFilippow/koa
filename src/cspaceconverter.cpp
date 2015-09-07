@@ -83,11 +83,11 @@ std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<i
 
 void uniquely_bin(vector< vector< int > >* par_list, vector<float> par_vector, float* lowerbounds, float* upperbounds, float xycoarseness, float zcoarseness){
 	if (par_vector[0] < lowerbounds[0] || par_vector[1]  < lowerbounds[1] || par_vector[2]  < lowerbounds[2] || par_vector[0]  > upperbounds[0] || par_vector[1]  > upperbounds[1] || par_vector[2]  > upperbounds[2]){
-	//	printf("Vector %f, %f, %f out of range\n", par_vector[0], par_vector[1], par_vector[2]);
+		printf("Vector %f, %f, %f out of range\n", par_vector[0], par_vector[1], par_vector[2]);
 		return;
 	}
 	vector<int> binned_vector(3);
-	//printf("binning Vector %f, %f, %f\n", par_vector[0], par_vector[1], par_vector[2]);
+	printf("binning Vector %f, %f, %f\n", par_vector[0], par_vector[1], par_vector[2]);
 	
 	binned_vector[0] = floor((par_vector[0]-lowerbounds[0])*xycoarseness/(upperbounds[0]-lowerbounds[0]));
 	binned_vector[1] = floor((par_vector[1]-lowerbounds[1])*xycoarseness/(upperbounds[1]-lowerbounds[1]));
