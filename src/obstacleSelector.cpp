@@ -5,7 +5,9 @@ obstacleSelector::obstacleSelector(){
 	distances.resize(0);
 	positions.resize(0);
 	currKeyFrameID = 0;
-	
+
+	viewer = boost::make_shared<pcl::visualization::PCLVisualizer> ("obstacle cloud viewer");
+
 }
 void obstacleSelector::subscribe(ros::NodeHandle par_handle, const string par_topic){
 	cloud_sub = par_handle.subscribe<sensor_msgs::PointCloud2>(par_topic, 1, &obstacleSelector::callback, this);
@@ -49,6 +51,9 @@ void obstacleSelector::callback(const sensor_msgs::PointCloud2 inputROSMsg_track
 	sor.setLeafSize (0.01f, 0.01f, 0.01f);
 	sor.filter (*fullCloud);*/
 	currKeyFrameID=fullCloud->header.seq;
+	
+		if(!viewer->updatePointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud"))
+          viewer->addPointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud");
 }
 
 

@@ -47,6 +47,8 @@
 #include <pcl/filters/passthrough.h>
 #include <ros/package.h>
 #include <ros/ros.h>
+
+#include <pcl/visualization/pcl_visualizer.h>  
 #define MAXSEGMENTS 20
 
 
@@ -95,6 +97,8 @@ public:
 	obstacleSelector();
 	void updateObstacles();
 	void subscribe(ros::NodeHandle par_handle, const string par_topic);
+	
+		boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 
 };
 

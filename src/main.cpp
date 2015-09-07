@@ -28,7 +28,7 @@
 #include <boost/thread/mutex.hpp>
 #include <sys/time.h> 
  
-#include <pcl/visualization/pcl_visualizer.h>  
+
 #include <../../opt/ros/hydro/include/ros/init.h>
 #include <sstream> 
 #include <pcl/sample_consensus/ransac.h>
@@ -527,10 +527,7 @@ int main(int argc, char** argv)
 	//Comm initialisation
 	rosComm rcom(&nh, output_topic_);	
 	tf::TransformBroadcaster br;
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
-	viewer = boost::make_shared<pcl::visualization::PCLVisualizer> ("obstacle cloud viewer");
-	if(!viewer->updatePointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud"))
-          viewer->addPointCloud<pcl::PointXYZL>(oSelect.fullCloud, "raw_cloud");
+
 	
 	/*
 	listener = new   tf::TransformListener;
