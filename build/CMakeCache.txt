@@ -445,7 +445,7 @@ _CATKIN_GTEST_INCLUDE:FILEPATH=/usr/include/gtest/gtest.h
 _CATKIN_GTEST_SRC:FILEPATH=/usr/src/gtest/src/gtest.cc
 
 //Path to a file.
-_file_name:FILEPATH=/home/andrej/Workspace/koa/src/obstacleSelector.h
+_file_name:FILEPATH=_file_name-NOTFOUND
 
 //The directory containing a CMake configuration file for catkin.
 catkin_DIR:PATH=/opt/ros/hydro/share/catkin/cmake

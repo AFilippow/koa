@@ -56,7 +56,7 @@ CMAKE_BINARY_DIR = /home/andrej/Workspace/koa/build
 # Target rules for target CMakeFiles/ROSBUILD_genmsg_cpp.dir
 
 # All Build rule for target.
-CMakeFiles/ROSBUILD_genmsg_cpp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
+CMakeFiles/ROSBUILD_genmsg_cpp.dir/all:
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_cpp.dir/build.make CMakeFiles/ROSBUILD_genmsg_cpp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_cpp.dir/build.make CMakeFiles/ROSBUILD_genmsg_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -87,7 +87,7 @@ clean: CMakeFiles/ROSBUILD_genmsg_cpp.dir/clean
 # Target rules for target CMakeFiles/ROSBUILD_genmsg_lisp.dir
 
 # All Build rule for target.
-CMakeFiles/ROSBUILD_genmsg_lisp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
+CMakeFiles/ROSBUILD_genmsg_lisp.dir/all:
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_lisp.dir/build.make CMakeFiles/ROSBUILD_genmsg_lisp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_lisp.dir/build.make CMakeFiles/ROSBUILD_genmsg_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -118,7 +118,7 @@ clean: CMakeFiles/ROSBUILD_genmsg_lisp.dir/clean
 # Target rules for target CMakeFiles/ROSBUILD_gensrv_cpp.dir
 
 # All Build rule for target.
-CMakeFiles/ROSBUILD_gensrv_cpp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
+CMakeFiles/ROSBUILD_gensrv_cpp.dir/all:
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_cpp.dir/build.make CMakeFiles/ROSBUILD_gensrv_cpp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_cpp.dir/build.make CMakeFiles/ROSBUILD_gensrv_cpp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -149,7 +149,7 @@ clean: CMakeFiles/ROSBUILD_gensrv_cpp.dir/clean
 # Target rules for target CMakeFiles/ROSBUILD_gensrv_lisp.dir
 
 # All Build rule for target.
-CMakeFiles/ROSBUILD_gensrv_lisp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
+CMakeFiles/ROSBUILD_gensrv_lisp.dir/all:
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_lisp.dir/build.make CMakeFiles/ROSBUILD_gensrv_lisp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_lisp.dir/build.make CMakeFiles/ROSBUILD_gensrv_lisp.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -245,13 +245,13 @@ clean: CMakeFiles/clean_test_results.dir/clean
 CMakeFiles/doxygen.dir/all:
 	$(MAKE) -f CMakeFiles/doxygen.dir/build.make CMakeFiles/doxygen.dir/depend
 	$(MAKE) -f CMakeFiles/doxygen.dir/build.make CMakeFiles/doxygen.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles  1
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
 	@echo "Built target doxygen"
 .PHONY : CMakeFiles/doxygen.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/doxygen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/doxygen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 .PHONY : CMakeFiles/doxygen.dir/rule
@@ -273,10 +273,10 @@ clean: CMakeFiles/doxygen.dir/clean
 # Target rules for target CMakeFiles/main.dir
 
 # All Build rule for target.
-CMakeFiles/main.dir/all: CMakeFiles/rosbuild_precompile.dir/all
+CMakeFiles/main.dir/all:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/depend
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles  4 5 6 7 8 9 10 11 12
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
 	@echo "Built target main"
 .PHONY : CMakeFiles/main.dir/all
 
@@ -286,7 +286,7 @@ all: CMakeFiles/main.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/main.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/main.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 .PHONY : CMakeFiles/main.dir/rule
@@ -339,7 +339,7 @@ clean: CMakeFiles/rosbuild_clean-test-results.dir/clean
 # Target rules for target CMakeFiles/rosbuild_precompile.dir
 
 # All Build rule for target.
-CMakeFiles/rosbuild_precompile.dir/all: CMakeFiles/rospack_genmsg_libexe.dir/all
+CMakeFiles/rosbuild_precompile.dir/all:
 	$(MAKE) -f CMakeFiles/rosbuild_precompile.dir/build.make CMakeFiles/rosbuild_precompile.dir/depend
 	$(MAKE) -f CMakeFiles/rosbuild_precompile.dir/build.make CMakeFiles/rosbuild_precompile.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -401,8 +401,7 @@ clean: CMakeFiles/rosbuild_premsgsrvgen.dir/clean
 # Target rules for target CMakeFiles/rospack_genmsg.dir
 
 # All Build rule for target.
-CMakeFiles/rospack_genmsg.dir/all: CMakeFiles/ROSBUILD_genmsg_lisp.dir/all
-CMakeFiles/rospack_genmsg.dir/all: CMakeFiles/ROSBUILD_genmsg_cpp.dir/all
+CMakeFiles/rospack_genmsg.dir/all:
 	$(MAKE) -f CMakeFiles/rospack_genmsg.dir/build.make CMakeFiles/rospack_genmsg.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_genmsg.dir/build.make CMakeFiles/rospack_genmsg.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -464,8 +463,7 @@ clean: CMakeFiles/rospack_genmsg_libexe.dir/clean
 # Target rules for target CMakeFiles/rospack_gensrv.dir
 
 # All Build rule for target.
-CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
-CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_cpp.dir/all
+CMakeFiles/rospack_gensrv.dir/all:
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -527,7 +525,7 @@ clean: CMakeFiles/run_tests.dir/clean
 # Target rules for target CMakeFiles/test.dir
 
 # All Build rule for target.
-CMakeFiles/test.dir/all: CMakeFiles/tests.dir/all
+CMakeFiles/test.dir/all:
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/depend
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -589,7 +587,7 @@ clean: CMakeFiles/test-future.dir/clean
 # Target rules for target CMakeFiles/test-results.dir
 
 # All Build rule for target.
-CMakeFiles/test-results.dir/all: CMakeFiles/test-results-run.dir/all
+CMakeFiles/test-results.dir/all:
 	$(MAKE) -f CMakeFiles/test-results.dir/build.make CMakeFiles/test-results.dir/depend
 	$(MAKE) -f CMakeFiles/test-results.dir/build.make CMakeFiles/test-results.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -651,7 +649,7 @@ clean: CMakeFiles/test-results-run.dir/clean
 # Target rules for target CMakeFiles/tests.dir
 
 # All Build rule for target.
-CMakeFiles/tests.dir/all: CMakeFiles/rosbuild_clean-test-results.dir/all
+CMakeFiles/tests.dir/all:
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/depend
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
@@ -701,13 +699,13 @@ gtest/preinstall:
 gtest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles  2
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
 	@echo "Built target gtest"
 .PHONY : gtest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
 gtest/CMakeFiles/gtest.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 gtest/CMakeFiles/gtest.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 .PHONY : gtest/CMakeFiles/gtest.dir/rule
@@ -729,16 +727,16 @@ clean: gtest/CMakeFiles/gtest.dir/clean
 # Target rules for target gtest/CMakeFiles/gtest_main.dir
 
 # All Build rule for target.
-gtest/CMakeFiles/gtest_main.dir/all: gtest/CMakeFiles/gtest.dir/all
+gtest/CMakeFiles/gtest_main.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles  3
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/andrej/Workspace/koa/build/CMakeFiles 
 	@echo "Built target gtest_main"
 .PHONY : gtest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
 gtest/CMakeFiles/gtest_main.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 gtest/CMakeFiles/gtest_main.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/andrej/Workspace/koa/build/CMakeFiles 0
 .PHONY : gtest/CMakeFiles/gtest_main.dir/rule
