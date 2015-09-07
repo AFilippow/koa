@@ -54,6 +54,7 @@ void obstacleSelector::callback(const sensor_msgs::PointCloud2 inputROSMsg_track
 	
 		if(!viewer->updatePointCloud<pcl::PointXYZL>(fullCloud, "raw_cloud"))
           viewer->addPointCloud<pcl::PointXYZL>(fullCloud, "raw_cloud");
+          viewer->spinOnce();
 }
 
 
