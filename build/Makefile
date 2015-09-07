@@ -497,54 +497,6 @@ src/main.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/obstacleSelector.o: src/obstacleSelector.cpp.o
-.PHONY : src/obstacleSelector.o
-
-# target to build an object file
-src/obstacleSelector.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacleSelector.cpp.o
-.PHONY : src/obstacleSelector.cpp.o
-
-src/obstacleSelector.i: src/obstacleSelector.cpp.i
-.PHONY : src/obstacleSelector.i
-
-# target to preprocess a source file
-src/obstacleSelector.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacleSelector.cpp.i
-.PHONY : src/obstacleSelector.cpp.i
-
-src/obstacleSelector.s: src/obstacleSelector.cpp.s
-.PHONY : src/obstacleSelector.s
-
-# target to generate assembly for a file
-src/obstacleSelector.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacleSelector.cpp.s
-.PHONY : src/obstacleSelector.cpp.s
-
-src/rosComm.o: src/rosComm.cpp.o
-.PHONY : src/rosComm.o
-
-# target to build an object file
-src/rosComm.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rosComm.cpp.o
-.PHONY : src/rosComm.cpp.o
-
-src/rosComm.i: src/rosComm.cpp.i
-.PHONY : src/rosComm.i
-
-# target to preprocess a source file
-src/rosComm.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rosComm.cpp.i
-.PHONY : src/rosComm.cpp.i
-
-src/rosComm.s: src/rosComm.cpp.s
-.PHONY : src/rosComm.s
-
-# target to generate assembly for a file
-src/rosComm.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rosComm.cpp.s
-.PHONY : src/rosComm.cpp.s
-
 src/segmenter.o: src/segmenter.cpp.o
 .PHONY : src/segmenter.o
 
@@ -684,12 +636,6 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/obstacleSelector.o"
-	@echo "... src/obstacleSelector.i"
-	@echo "... src/obstacleSelector.s"
-	@echo "... src/rosComm.o"
-	@echo "... src/rosComm.i"
-	@echo "... src/rosComm.s"
 	@echo "... src/segmenter.o"
 	@echo "... src/segmenter.i"
 	@echo "... src/segmenter.s"

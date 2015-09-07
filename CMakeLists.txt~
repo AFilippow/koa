@@ -22,8 +22,8 @@ include_directories(${VTK_INCLUDE_DIRS})
 
 
 
-SET(detector_SOURCES src/main.cpp  src/segmenter.cpp src/vrepComm.cpp src/xdmp.cpp src/vectormath.cpp src/cspaceconverter.cpp src/KukaLWR_DHnew.cpp) 
-SET(detector_HEADERS src/segmenter.h src/vrepComm.h src/xdmp.h src/vectormath.h src/cspaceconverter.h src/KukaLWR_DHnew.h) 
+SET(detector_SOURCES src/main.cpp  src/segmenter.cpp src/vrepComm.cpp src/xdmp.cpp src/vectormath.cpp src/cspaceconverter.cpp src/KukaLWR_DHnew.cpp src/rosComm.cpp src/obstacleSelector.cpp) 
+SET(detector_HEADERS src/segmenter.h src/vrepComm.h src/xdmp.h src/vectormath.h src/cspaceconverter.h src/KukaLWR_DHnew.h src/rosComm.h src/obstacleSelector.h) 
 
 rosbuild_add_executable(main ${detector_SOURCES} ${detector_HEADERS})
 rosbuild_add_boost_directories()
