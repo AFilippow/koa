@@ -54,6 +54,8 @@
 #include <pthread.h>
 #define PI 3.141562f
 #define THREADNUMBER 51
+#define CPATH "/home/andrej/Workspace/cspoutput/4dreduced/slice_"
+#define HPATH "/home/andrej/Workspace/cspoutput/4dhandonly/slice_"
 /* This nasty piece of Work holds all c-Space points that correspond to a 3d-space point o(x,y,z)
  * Point vector values are c-space coordinates: pointsData[x*50*50 + y*50 + z][pointNumber][c-Space dimension]
  * 

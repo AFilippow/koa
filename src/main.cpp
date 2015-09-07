@@ -262,6 +262,46 @@ void getLiveObstacleData(float t){
 		obst.push_back(oSelect.obstacles[i][2]);
 		dist.push_back(oSelect.distances[i]);
 
+		obst.push_back(oSelect.obstacles[i][0]+0.04);
+		obst.push_back(oSelect.obstacles[i][1]+0.04);
+		obst.push_back(oSelect.obstacles[i][2]+0.04);
+		dist.push_back(oSelect.distances[i]);
+		
+		obst.push_back(oSelect.obstacles[i][0]-0.04);
+		obst.push_back(oSelect.obstacles[i][1]+0.04);
+		obst.push_back(oSelect.obstacles[i][2]+0.04);
+		dist.push_back(oSelect.distances[i]);
+				
+		obst.push_back(oSelect.obstacles[i][0]+0.04);
+		obst.push_back(oSelect.obstacles[i][1]-0.04);
+		obst.push_back(oSelect.obstacles[i][2]+0.04);
+		dist.push_back(oSelect.distances[i]);
+				
+		obst.push_back(oSelect.obstacles[i][0]+0.04);
+		obst.push_back(oSelect.obstacles[i][1]+0.04);
+		obst.push_back(oSelect.obstacles[i][2]-0.04);	
+		dist.push_back(oSelect.distances[i]);
+			
+		obst.push_back(oSelect.obstacles[i][0]+0.04);
+		obst.push_back(oSelect.obstacles[i][1]-0.04);
+		obst.push_back(oSelect.obstacles[i][2]-0.04);	
+		dist.push_back(oSelect.distances[i]);
+			
+		obst.push_back(oSelect.obstacles[i][0]-0.04);
+		obst.push_back(oSelect.obstacles[i][1]+0.04);
+		obst.push_back(oSelect.obstacles[i][2]-0.04);
+		dist.push_back(oSelect.distances[i]);
+		
+		obst.push_back(oSelect.obstacles[i][0]-0.04);
+		obst.push_back(oSelect.obstacles[i][1]-0.04);
+		obst.push_back(oSelect.obstacles[i][2]+0.04);
+		dist.push_back(oSelect.distances[i]);
+		
+		obst.push_back(oSelect.obstacles[i][0]-0.04);
+		obst.push_back(oSelect.obstacles[i][1]-0.04);
+		obst.push_back(oSelect.obstacles[i][2]-0.04);
+		dist.push_back(oSelect.distances[i]);
+		
 	}
 	obst.push_back(rsy[0]);
 	obst.push_back(rsy[1]);
@@ -448,7 +488,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "koa");
 	ros::NodeHandle nh("~");  
 	initGlobalParams(argc, argv);
-	std::string source_, sim_topic_, goal_topic_, output_topic_;
+	std::string source_, sim_topic_, goal_topic_, output_topic_;//, csp_path_;
 	nh.getParam ("source", source_);		///<- source node topic
 	nh.getParam ("cloud_topic", sim_topic_);   ///<- obstacle cloud topic
 	nh.getParam ("goal_topic", goal_topic_);   ///<- obstacle cloud topic
@@ -456,6 +496,7 @@ int main(int argc, char** argv)
 	nh.getParam ("no_Obstacle", mode);	
 	nh.getParam ("fixed_cloud", fixedcloud);
 	nh.getParam ("output_topic", output_topic_);
+	//nh.getParam ("csp_path", csp_path_);
 	oSelect.subscribe(nh, "/"+source_+"/"+sim_topic_);
 	ros::Publisher output = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 10);
 	ros::Subscriber goal = nh.subscribe<geometry_msgs::Point>("/"+source_+"/"+goal_topic_, 1, goal_callback);

@@ -16,8 +16,8 @@ cspaceconverter::cspaceconverter(){
 	upperbounds[0] = 0.45;
 	upperbounds[1] = 0.6;
 	upperbounds[2] = 0.6;
-	xycoarseness = 21; 
-	zcoarseness = 11;
+	xycoarseness = 61; 
+	zcoarseness = 41;
 	pointsconsidered = 30;
 
 }
@@ -43,7 +43,7 @@ float vectordistance(vector<float> x, vector<int> y)
 }
 
 std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<int> obstacle, int num_points){
-	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dlow/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
+	std::ifstream slicefile((CPATH+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
 	std::list<vector<float> > output;
 	if (!slicefile)
 	{
@@ -191,7 +191,7 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 		binned_obstacles.push_back(temp);
 	}
 	
-	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dhandonly/slice_"+boost::to_string(binned_vector[0])+"_"+boost::to_string(binned_vector[1])+"_"+boost::to_string(binned_vector[2])+".dat").c_str(), ios::in);
+	std::ifstream slicefile((HPATH+boost::to_string(binned_vector[0])+"_"+boost::to_string(binned_vector[1])+"_"+boost::to_string(binned_vector[2])+".dat").c_str(), ios::in);
 	if (!slicefile)
 	{
 		printf("error 1 opening file %i, %i, %i\n", binned_vector[0], binned_vector[1], binned_vector[2]);
@@ -213,7 +213,7 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 		}
 		
 		for (int j = 0; j < binned_obstacles.size(); j++){
-			std::ifstream obstfile(("/home/andrej/Workspace/cspoutput/4dlow/slice_"+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
+			std::ifstream obstfile((CPATH+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
 			if (!obstfile)
 			{
 				printf("error 2 opening file %i, %i, %i\n", binned_obstacles[j][0], binned_obstacles[j][1], binned_obstacles[j][2]);
