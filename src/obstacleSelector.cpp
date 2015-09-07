@@ -23,6 +23,24 @@ void obstacleSelector::callback(const sensor_msgs::PointCloud2 inputROSMsg_track
 	//pcl_ros::transformPointCloud(*currCloud, *currCloud, ((tf::Transform*)(frameTransform))->inverse());
 
 	fullCloud->header.seq++;
+	for (int i = 0; i < fullCloud->points.size(); i++){
+		while (fullCloud->points[i].x > 0.2)
+			fullCloud->points[i].x -= 0.1;
+		while (fullCloud->points[i].x < -0.2)
+			fullCloud->points[i].x += 0.1;
+		
+		while (fullCloud->points[i].y > 0.2)
+			fullCloud->points[i].y -= 0.1;
+		while (fullCloud->points[i].y < -0.2)
+			fullCloud->points[i].y += 0.1;			
+		
+		while (fullCloud->points[i].z > 0.2)
+			fullCloud->points[i].z -= 0.1;
+		while (fullCloud->points[i].z < 0.0)
+			fullCloud->points[i].z += 0.1;			
+			
+	}
+	
 	///downsample
 	/*pcl::VoxelGrid< pcl::PointXYZ > sor;
 	sor.setInputCloud (fullCloud);
