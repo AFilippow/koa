@@ -108,7 +108,7 @@ float randomNumber() //between 0 and 1
 
 vector<float> partialKinematic(KDL::JntArray q, float linknumber){
 	
-	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.15, 0.35) ) ;
+	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.300)) ;
 	Chain KukaChain = KukaLWR_DHnew();
 	ChainFkSolverPos_recursive kinematic_solver(KukaChain);
 	KDL::Frame cartpos;
@@ -121,7 +121,7 @@ vector<float> partialKinematic(KDL::JntArray q, float linknumber){
 	return rtrn;
 }
 vector<float> fullKinematic(KDL::JntArray q){
-	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.15, 0.35) ) ;
+	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.300)) ;
 	Chain KukaChain = KukaLWR_DHnew();
 	ChainFkSolverPos_recursive kinematic_solver(KukaChain);
 	KDL::Frame cartpos;
@@ -216,6 +216,27 @@ void setPerfectObstacle(vector<float> position){
 	//dist[1] = sqrt((obst[3] - segm.position.x)*(obst[3] - segm.position.x) + (obst[4] - segm.position.y) *(obst[4] - segm.position.y) + (obst[5] - segm.position.z)*(obst[5]- segm.position.z));
 	//dist[2] = sqrt((obst[6] - segm.position.x)*(obst[6] - segm.position.x) + (obst[7] - segm.position.y) *(obst[7] - segm.position.y) + (obst[8] - segm.position.z)*(obst[8]- segm.position.z));
 }
+void expandObstacleCloud(){
+	int pointnumber = obstacleCloud->width;
+	
+	for (float i = -1; i < 2; i+=2)
+		for (float j = -1; j < 2; j+=2)
+			for (float k = -1; k < 2; k+=2)
+				for (int index = 0; index < pointnumber; index++){
+					pcl::PointXYZRGB newpoint;
+					newpoint.x = obstacleCloud->points[index].x+i*0.05;
+					newpoint.y = obstacleCloud->points[index].y+j*0.05;
+					newpoint.z = obstacleCloud->points[index].z+k*0.05;
+					newpoint.r = obstacleCloud->points[index].r*2;
+					newpoint.g = obstacleCloud->points[index].g*2;
+					newpoint.b = obstacleCloud->points[index].b*2;
+					obstacleCloud->points.push_back(newpoint);
+				}
+	obstacleCloud->width = obstacleCloud->points.size();
+	
+}
+
+
 
 void paintObstacles(){
 
@@ -406,14 +427,14 @@ void calculate_obstacle_persistence()
 
 ///This function retrieves the obstacles from the segmenter in real time
 void getLiveObstacleData(float t){
+
 	//printf("currently at %s \n", __func__);
 	obst.resize(0);
 	dist.resize(0);
 	segmentOnceAndGetClouds();
+
 	if((segm.obstacles.size()>0 && t > 0.05*tau*T) && !perfectObstacle)
 	{
-		obst.resize(0);
-		dist.resize(0);
 		//printf("%u obstacles found: \n",segm.obstacles.size());
 		for(unsigned int i = 0; i < segm.obstacles.size(); i++)
 		{		
@@ -422,48 +443,47 @@ void getLiveObstacleData(float t){
 			obst.push_back(segm.obstacles[i].x);
 			obst.push_back(segm.obstacles[i].y);
 			obst.push_back(segm.obstacles[i].z);
-			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
+			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.07);
 			
-			obst.push_back(segm.obstacles[i].x+0.04);
-			obst.push_back(segm.obstacles[i].y+0.04);
-			obst.push_back(segm.obstacles[i].z+0.04);
+			obst.push_back(segm.obstacles[i].x+0.05);
+			obst.push_back(segm.obstacles[i].y+0.05);
+			obst.push_back(segm.obstacles[i].z+0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x-0.04);
-			obst.push_back(segm.obstacles[i].y+0.04);
-			obst.push_back(segm.obstacles[i].z+0.04);
+			obst.push_back(segm.obstacles[i].x-0.05);
+			obst.push_back(segm.obstacles[i].y+0.05);
+			obst.push_back(segm.obstacles[i].z+0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x+0.04);
-			obst.push_back(segm.obstacles[i].y-0.04);
-			obst.push_back(segm.obstacles[i].z+0.04);
+			obst.push_back(segm.obstacles[i].x+0.05);
+			obst.push_back(segm.obstacles[i].y-0.05);
+			obst.push_back(segm.obstacles[i].z+0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x+0.04);
-			obst.push_back(segm.obstacles[i].y+0.04);
-			obst.push_back(segm.obstacles[i].z-0.04);
+			obst.push_back(segm.obstacles[i].x+0.05);
+			obst.push_back(segm.obstacles[i].y+0.05);
+			obst.push_back(segm.obstacles[i].z-0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x+0.04);
-			obst.push_back(segm.obstacles[i].y-0.04);
-			obst.push_back(segm.obstacles[i].z-0.04);
+			obst.push_back(segm.obstacles[i].x+0.05);
+			obst.push_back(segm.obstacles[i].y-0.05);
+			obst.push_back(segm.obstacles[i].z-0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x-0.04);
-			obst.push_back(segm.obstacles[i].y+0.04);
-			obst.push_back(segm.obstacles[i].z-0.04);
+			obst.push_back(segm.obstacles[i].x-0.05);
+			obst.push_back(segm.obstacles[i].y+0.05);
+			obst.push_back(segm.obstacles[i].z-0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x-0.04);
-			obst.push_back(segm.obstacles[i].y-0.04);
-			obst.push_back(segm.obstacles[i].z+0.04);
+			obst.push_back(segm.obstacles[i].x-0.05);
+			obst.push_back(segm.obstacles[i].y-0.05);
+			obst.push_back(segm.obstacles[i].z+0.05);
 			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
 
-			obst.push_back(segm.obstacles[i].x-0.04);
-			obst.push_back(segm.obstacles[i].y-0.04);
-			obst.push_back(segm.obstacles[i].z-0.04);
-			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.05);
-
+			obst.push_back(segm.obstacles[i].x-0.05);
+			obst.push_back(segm.obstacles[i].y-0.05);
+			obst.push_back(segm.obstacles[i].z-0.05);
+			dist.push_back(pcl::euclideanDistance(mPointType(segm.obstacles[i].x, segm.obstacles[i].y, segm.obstacles[i].z), mPointType(rsy[0], rsy[1], rsy[2]))-0.04);
 			
 			
 			
@@ -473,8 +493,13 @@ void getLiveObstacleData(float t){
 	}
 	obst.push_back(rsy[0]);
 	obst.push_back(rsy[1]);
-	obst.push_back(0.02);
-	dist.push_back(rsy[2]-0.02);
+	obst.push_back(0.01);
+	dist.push_back(rsy[2]-0.01);
+
+
+
+
+	expandObstacleCloud();
 }
 
 void getSavedObstacleData(float t){
@@ -520,7 +545,7 @@ void initGlobalParams(int argc, char** argv){
 	mode = false;
 	perfectObstacle = false;
 	fixedcloud = false;
-	flipTrajectory = -1;
+	flipTrajectory = 1;
 	/*if (argc > 1)
 		for(int i = 1; i < argc; i++)
 		{
@@ -553,7 +578,7 @@ void initDMP(){
 	y.resize(dmpDimensions);
 	std::cout << "Initialising dmp\n";
 	dmp_dim=dmpDimensions;
-	T=3; //seconds
+	T=10; //seconds
 	tau=1;
 	dt=0.005; ///change here important ----- seconds
 	n=3; //number of cores
@@ -602,7 +627,20 @@ void moveObstacles(vrepComm vcom){
 	if (vcom.getAnyCollisions() == true)
 		moveObstacles(vcom);
 }
-
+void moveObstaclesContinuosly(vrepComm vcom, float t){
+	
+	float radius = 0.1+t;
+	float alpha = t*3.141572*2-0.1;
+	
+	if (t <= 0.05*T*0.3*tau)
+		vcom.moveObstacleNr(1, -0.1, 0.555, 0.1);
+	if (t > 0.05*T*0.3*tau && t <= 0.07*T*tau && flipTrajectory == 1)
+		vcom.moveObstacleNr(1, -0.1, 0.555+(t-0.05*T*0.3*tau)*0.2, 0.1+(t-0.05*T*0.3*tau)*0.2);
+	/*if (t > 0.3*T*0.3*tau && flipTrajectory == 1)
+		vcom.moveObstacleNr(1, -0.1, 0.555+(0.015*T*0.3*tau)*4, 0.1+(0.015*T*0.3*tau)*5 );*/
+		//vcom.moveObstacleNr(0, rsy[0], rsy[1], rsy[2]);
+		
+}
 float vectorarraydistance(KDL::JntArray q1, vector<float> q2){
 	float result = 0;
 	for (int i = 0; i < dmp_dim; i++)
@@ -610,7 +648,7 @@ float vectorarraydistance(KDL::JntArray q1, vector<float> q2){
 	return sqrt(result);
 }
 void test_file(vrepComm vcom){
-	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dhandonly/slice_44_50_3.dat"), ios::in);
+	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_22_20_2.dat"), ios::in);
 	std::list<vector<float> > output;
 	if (!slicefile)
 	{
@@ -644,7 +682,7 @@ void save_some_points(vrepComm vcom){
 	Chain KukaChain = KukaLWR_DHnew();
 	ChainFkSolverPos_recursive* kinematic_solver = new ChainFkSolverPos_recursive(KukaChain);
 	int jointNumber = KukaChain.getNrOfJoints();
-	KDL::Frame baseframe(KDL::Rotation::Quaternion(- 0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.0, 0.3) ) ;
+	KDL::Frame baseframe(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.300) ) ;
 
 	KDL::JntArray q(jointNumber);
 	
@@ -708,23 +746,38 @@ void save_some_points(vrepComm vcom){
 	fprintf(out, "%f \t %f \t %f \t \n", position4.x(), position4.y(), position4.z());
 	vcom.moveObstacleNr(3, handposition.x(), handposition.y(), handposition.z());*/
 }
+void set_conf(){
+	s[0] = -55.37/180*PI;
+	s[1] = -45.04/180*PI;
+	s[2] = 28.45/180*PI;
+	s[3] = 90.92/180*PI;
+	
+	e[0] = -100.0/180*PI;
+	e[1] = -110.0/180*PI;
+	e[2] = 35.0/180*PI;
+	e[3] = 75.0/180*PI;
+	
+	
+	dmp.set_s(s);
+	dmp.set_g(e);
+}
 void find_conf(int type){
 	vector<float> rs(3, 0);
-	rs[0] = 0.21;
-	rs[1] = 0.45;
-	rs[2] = 0.09;
+	rs[0] = -0.20;
+	rs[1] = 0.25;
+	rs[2] = 0.13;
 	vector<float> re(3, 0);
 	if (type != 0){
-		re[0] = -0.1+randomNumber()*0.2;
-		re[1] = 0.10+((float)type)*0.4;
-		re[2] = 0.12;
+		re[0] = -0.15+((float)type)*0.3;
+		re[1] = 0.15+randomNumber()*0.2;
+		re[2] = 0.13;
 	}
 	else{
-		re[0] = 0;
-		re[1] = -0.15;
-		re[2] = 0.12;
+		re[0] = 0.10;
+		re[1] = 0.25;
+		re[2] = 0.13;
 	}
-	//printf("rs is: %f, %f, %f; re is: %f, %f, %f \n", rs[0], rs[1], rs[2], re[0], re[1], re[2]);
+	printf("rs is: %f, %f, %f; re is: %f, %f, %f \n", rs[0], rs[1], rs[2], re[0], re[1], re[2]);
 	
 	vector<vector<float> > par_obst;
 	if (obst.size() > 1){
@@ -736,8 +789,10 @@ void find_conf(int type){
 		}
 	}
 	//get s:
+	int checks = 0;
 	s.resize(0);
-	while (s.size() < 3){
+	while (s.size() < 3 && checks < 100){
+		checks++;
 		if (type == 0){
 			s = CSP->get_smoothest_configuration(rs);
 			//printf("Set s w.o. obstacle to %f, %f, %f, %f, corr. to point %f, %f, %f\n", s[0], s[1], s[2], s[3], rs[0], rs[1], rs[2]);
@@ -751,7 +806,8 @@ void find_conf(int type){
 	//get e:
 	e.resize(0);
 	//printf("Searching end configuration ");
-	while(e.size() < 3){
+	while(e.size() < 3 && checks < 100){
+		checks++;
 		//printf(".");
 		if (obst.size() > 1)
 			e = CSP->get_safest_configuration(re, par_obst);
@@ -762,7 +818,10 @@ void find_conf(int type){
 	}
 	//printf(" done\n");
 	
-	
+	if (checks > 100){
+		printf("error: no configuration found \n");
+		return;
+	}
 	//printf("start point set to %f, %f, %f, %f, \n",s[0],s[1],s[2],s[3]);
 	//printf("end point set to %f, %f, %f, %f, corresponding to %f, %f, %f\n",e[0],e[1],e[2],e[3],re[0],re[1],re[2]);
 	dmp.set_s(s);
@@ -780,7 +839,7 @@ int main(int argc, char** argv)
 	float timesteps = 0;
 	CSP = new cspaceconverter();
 	CSP->launch_obstacle_thread();
-	KDL::Frame k(KDL::Rotation::Quaternion(-0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.0, 0.3)  ); //listen to the rotation with "rosrun tf tf_echo KUKA_base world" from console
+	KDL::Frame k(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330)  ); //listen to the rotation with "rosrun tf tf_echo KUKA_base world" from console
 	rsy.resize(3, 0);
 	/*vector<float> pos;
 	KDL::JntArray q(7);
@@ -836,7 +895,7 @@ int main(int argc, char** argv)
 	ros::Publisher output = nh.advertise<sensor_msgs::PointCloud2>("segmentedOutput", 10);
 	ros::Publisher output2 = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 10);
 	
-	ros::Rate r(30); 
+	ros::Rate r(100); 
 	// DMP initialisation
 	initDMP();
 	std::cout << ".\n";
@@ -847,6 +906,8 @@ int main(int argc, char** argv)
 		std::cout << "Initialising VREP Comm...\n";
 	//SocketComm scom;
 	vrepComm vcom(&nh);
+
+
 	/*save_some_points(vcom);
 	return 1; */
 
@@ -873,7 +934,7 @@ int main(int argc, char** argv)
 	int trialrun = 0;
 	int trial = 0;
 	string folders[7];
-	string prefix = "series2/radius/";
+	string prefix = "series2/dump/";
 	folders[0] = prefix+"05";
 	folders[1] = prefix+"08";
 	folders[2] = prefix+"1";
@@ -882,13 +943,14 @@ int main(int argc, char** argv)
 	folders[5] = prefix+"7";
 	folders[6] = prefix+"10";
 	float lambda[7];
-	lambda[0] = 0.05;
-	lambda[1] = 0.08;
-	lambda[2] = 0.1;
+	
+	lambda[0] = 0.3;
+	lambda[1] = 0.3;
+	lambda[2] = 0.3;
 	lambda[3] = 0.3;
-	lambda[4] = 0.5;
-	lambda[5] = 0.7;
-	lambda[6] = 1.0; 
+	lambda[4] = 0.3;
+	lambda[5] = 0.3;
+	lambda[6] = 0.3; 
 	
 	
 	string trajectoryoutput = "/home/andrej/Workspace/"+folders[trial]+"/"+boost::lexical_cast<string>(trialrun)+".dat";
@@ -904,7 +966,7 @@ int main(int argc, char** argv)
 	multirun = fopen(trajectoryoutput.c_str(),"w");
 	FILE * datasets;
 	datasets = fopen("/home/andrej/Workspace/xdmp_dts.txt","w");
-	dmp.LAMBDA = lambda[trial];
+	//dmp.LAMBDA = lambda[trial];
 	//CSP->pointsconsidered = lambda[trial];
 
 	//for testing purposes:
@@ -936,20 +998,22 @@ int main(int argc, char** argv)
 		catch (tf::TransformException ex){
 		  //ROS_ERROR("%s",ex.what());;
 		}
-		
-	moveObstacles(vcom);
+	//printf("1\n");
+	//moveObstacles(vcom);
 	if (fixedcloud) 
 	{
 		segmentOnceAndGetClouds();
 		getSavedObstacleData(t);
 	}
 	
-
+	//printf("2\n");
 	///Find best configurations for start- and endpoint
-	find_conf(0);
-
+	//find_conf(0);
+	set_conf();
+	//printf("3\n");
 
 	while (ros::ok()){
+		moveObstaclesContinuosly(vcom, t/4);
 		if (currKeyFrameID >= 0)
 			boost::mutex::scoped_lock lock (m_keycloud); 
 		
@@ -959,7 +1023,7 @@ int main(int argc, char** argv)
 		catch (tf::TransformException ex){
 		  //ROS_ERROR("%s",ex.what());;
 		}
-
+	//printf("4\n");
 		
 		///change here
 		
@@ -967,7 +1031,7 @@ int main(int argc, char** argv)
 		nullTransform.setIdentity ();
 		br.sendTransform(nullTransform);
 				
-				
+				//printf("5\n");	
 		try{
 			kukabaseListener->lookupTransform( "KUKA_base", "world", ros::Time(0), *kukaBaseTransform);
 		}
@@ -977,24 +1041,24 @@ int main(int argc, char** argv)
 		
 				
 		
+			//printf("6\n");
 		
-		
-		if(t<=1.0*tau*T) //run cycle
-		//if(vector_length(vector_difference(dmp.get_y(), dmp.g)) > 0.1) //run cycle
+		//if(t<=1.0*tau*T) //run cycle
+		if(vector_length(vector_difference(dmp.get_y(), dmp.g)) > 0.0001) //run cycle
 		{
 			
 			y=dmp.get_y();
 			closest_distance = -1;
 
-			
+				//printf("7\n");
 			
 			//Automatic obstacles
-			if (fixedcloud && !perfectObstacle)
+			/*if (fixedcloud && !perfectObstacle)
 				getSavedObstacleData(t);
 			else
-			{
+			{*/
 				getLiveObstacleData(t);
-			}
+			/*}
 			if (perfectObstacle)
 				{
 					if (trialrun==1 || trialrun==3 || trialrun==5)
@@ -1004,18 +1068,19 @@ int main(int argc, char** argv)
 						obst.resize(0);
 						dist.resize(0);
 					}
-				}
+				}*/
 			//printf("Y: %f, %f;  dist: %f \n", y[0], y[1], dist[0]);
 			//mass_center_distance = sqrt((-0.4 - segm.position.x)*(-0.4 - segm.position.x) + (-0.4 - segm.position.y) *(-0.4 - segm.position.y) + (0.3 - segm.position.z)*(0.3 - segm.position.z));
 			
 			///here we transform our obstacle into joint space;
 			vector<float> o(0);
-
+			//printf("8\n");
 			/*printf("Obst: ");
 			for (int i = 0; i < obst.size(); i++)
 				printf("%f, ", obst[i]);
 			printf("\n");*/
 			if (obst.size() > 1 && !mode){
+					//printf("9\n");
 				vector<vector<float> > par_obst(obst.size()/ 3);
 				for (int i = 0; i < obst.size(); i += 3){
 					par_obst[i/3].resize(3);
@@ -1029,7 +1094,9 @@ int main(int argc, char** argv)
 				tempvector.push_back(0.01);
 				par_obst.push_back(tempvector);*/
 				CSP->set_obstacles(par_obst);
-
+				printf("passed %i obstacles to CSP\n", par_obst.size());
+				
+					//printf("10\n");
 
 				/*printf("Distances: ");
 				for (int i = 0; i < dist.size(); i++)
@@ -1053,10 +1120,12 @@ int main(int argc, char** argv)
 			//printf("no obstacles found %i \n",obst.size());
 
 			}
+				//printf("11\n");
 			o = CSP->get_configurations_as_vectors();
 			dist = CSP->get_distances_as_vectors();
 			dmp.set_obstacle(o, dist);
 			dmp.calculate_one_step_dmp(t);
+				//printf("12\n");
 			y=dmp.get_y();
 			CSP->set_position(y);
 			vector<float> y2 = y;
@@ -1064,9 +1133,9 @@ int main(int argc, char** argv)
 			y2[4] = 0;
 			y2[5] = 0;
 			y2[6] = 0;
-
+				//printf("13\n");
 			vcom.sendJointAngles(y2);
-			
+				//printf("14\n");
 			KDL::Vector handposition;
 			handposition.x(0);
 			handposition.y(0);
@@ -1077,15 +1146,16 @@ int main(int argc, char** argv)
 			//fprintf(multirun, "%f \t %f \n",sqrt((temp.x()-rsy[0])*(temp.x()-rsy[0])+(temp.y()-rsy[1])*(temp.y()-rsy[1])+(temp.z()-rsy[2])*(temp.z()-rsy[2])), vector_length(dmp.get_z()) );
 			float cubeDistance = vcom.cubeDistance;
 			float brickDistance = vcom.brickDistance;
+			fprintf(multirun, "%f \t %f \t %f \t %f \n", timesteps, rsy[0], rsy[1], rsy[2]);
 			if (cubeDistance < min_distance) min_distance = cubeDistance;
 			if (brickDistance < min_distance) min_distance = brickDistance;
 			if (vector_length(dmp.get_z()) > max_acceleration) max_acceleration = vector_length(dmp.get_z());
 			KDL::Vector temp2 = k*(CSP->joint_to_KDLFrame(y2,4).p);
-			
+				//printf("15\n");
 			//fprintf(multirun, "%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n", cubeDistance, brickDistance, vector_length(dmp.get_z()) , rsy[0], rsy[1], rsy[2], temp2.x(), temp2.y(), temp2.z() );
-			fprintf(multirun, "%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n", cubeDistance, brickDistance, vector_length(dmp.get_z()) , rsy[0], rsy[1], rsy[2], temp2.x(), temp2.y(), temp2.z() );
+			//fprintf(multirun, "%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n", cubeDistance, brickDistance, vector_length(dmp.get_z()) , rsy[0], rsy[1], rsy[2], temp2.x(), temp2.y(), temp2.z() );
 			timesteps++;
-			if (timesteps == 5 || (int)timesteps % 88 == 0){
+			/*if (timesteps == 5 || (int)timesteps % 88 == 0){
 				string tempstring = "/home/andrej/Workspace/"+folders[trial]+"/"+boost::lexical_cast<string>(trialrun)+"_"+boost::lexical_cast<string>(timesteps)+".dat";
 				FILE * tempfile = fopen(tempstring.c_str(),"w");
 				fprintf(tempfile, "%f \t %f \t %f \n", -0.401, 0.268, 0.454);
@@ -1093,12 +1163,12 @@ int main(int argc, char** argv)
 				fprintf(tempfile, "%f \t %f \t %f \n", (temp2.x()+2*rsy[0])/3, (temp2.y()+2*rsy[1])/3, (temp2.z()+2*rsy[2])/3);
 				fprintf(tempfile, "%f \t %f \t %f \n", rsy[0], rsy[1], rsy[2]);
 				fclose(tempfile);
-			}
+			}*/
 			rsy[0] = temp.x();
 			rsy[1] = temp.y();
 			rsy[2] = temp.z();
 			//printf("rsy: %f, %f, %f \n", rsy[0], rsy[1], rsy[2]);
-			
+				//printf("16\n");
 			segm.setPosition(rsy);
 			
 			if ( t < 0.05*tau*T && angle < 0.1 ) 
@@ -1110,28 +1180,38 @@ int main(int argc, char** argv)
 					
 			t=t+dt;
 		}
-		if (t>1.0*tau*T){
-		//if (vector_length(vector_difference(dmp.get_y(), dmp.g)) < 0.1){
+		printf("path: %f\n",vector_length(vector_difference(dmp.get_y(), dmp.g)));
+		//if (t>1.0*tau*T){
+		if (vector_length(vector_difference(dmp.get_y(), dmp.g)) <= 0.011 && t > 0.05){
+			int counter = 0;
+			printf("%i, \n", counter++);
 			fprintf(datasets, "%i, \n", dmp.timestep);
 			fflush(datasets);
 			t = 0;
+			printf("%i, \n", counter++);
 			load_trajectory("/home/andrej/Workspace/koa/t2.txt", n, dmpDimensions, &dmp);
 			angle += angular_increment;
 			flipTrajectory = -flipTrajectory;
-					
-			find_conf(flipTrajectory);
+				printf("%i, \n", counter++);	
+			//find_conf(flipTrajectory);
+			//find_conf(0);
+			set_conf();
 			trialrun++;
-			moveObstacles(vcom);
+			printf("%i, \n", counter++);
+			//moveObstacles(vcom);
 			previousObstacles.clear(); 
 			obstaclePersistenceWeight.clear();
+			printf("%i, \n", counter++);
 			int collided = vcom.getAnyCollisions();
+			printf("%i, \n", counter++);
 			fprintf(fileOutput,"%i \t %f \t %f \t %f \n", collided, path_length, min_distance, max_acceleration);
 			printf("Collision status: %i at trial %i, run %i \n", collided, trial, trialrun);
+			printf("%i, \n", counter++);
 			path_length = 0;
 			min_distance = 10;
 			max_acceleration = 0;
 			fclose(multirun);
-			
+			printf("%i, \n", counter++);
 			if (trialrun > 9)
 			{
 				fclose(fileOutput);
@@ -1145,7 +1225,7 @@ int main(int argc, char** argv)
 					
 				collisionoutput = "/home/andrej/Workspace/"+folders[trial]+"/collisions.dat";
 				fileOutput = fopen(collisionoutput.c_str(), "w");	
-				dmp.LAMBDA = lambda[trial];
+				//dmp.LAMBDA = lambda[trial];
 				//CSP->pointsconsidered = lambda[trial];
 
 			}	
@@ -1154,12 +1234,11 @@ int main(int argc, char** argv)
 			y = s;
 			}
 	
-	
-		bool collided = false;
 
+		bool collided = false;
 		newCloud->header.frame_id = "kuka";
 		obstacleCloud->header.frame_id = "kuka";
-		output.publish(newCloud); 
+		output.publish(newCloud);
 		output2.publish(obstacleCloud); 
 		ros::spinOnce();
 		r.sleep();

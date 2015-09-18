@@ -4,20 +4,20 @@
 using namespace std;
 using namespace KDL;
 cspaceconverter::cspaceconverter(){
-	baseframe = KDL::Frame(KDL::Rotation::Quaternion(-0.444, 0.231, 0.40, 0.768), KDL::Vector(-0.4, 0.0, 0.3) ) ;
+	baseframe = KDL::Frame(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330) ) ;
 	KukaChain = KukaLWR_DHnew();
 	kinematic_solver = new ChainFkSolverPos_recursive(KukaChain);
 	jointNumber = KukaChain.getNrOfJoints();
 	lowerbounds = new float[3];
 	upperbounds = new float[3];
-	lowerbounds[0] = -0.45;
-	lowerbounds[1] = -0.3;
+	lowerbounds[0] = -0.55;
+	lowerbounds[1] = -0.05;
 	lowerbounds[2] = 0;
-	upperbounds[0] = 0.45;
-	upperbounds[1] = 0.6;
+	upperbounds[0] = 0.35;
+	upperbounds[1] = 0.85;
 	upperbounds[2] = 0.6;
-	xycoarseness = 21; 
-	zcoarseness = 11;
+	xycoarseness = 61; 
+	zcoarseness = 41;
 	pointsconsidered = 30;
 
 }
@@ -43,11 +43,11 @@ float vectordistance(vector<float> x, vector<int> y)
 }
 
 std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<int> obstacle, int num_points){
-	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dlow/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
+	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
 	std::list<vector<float> > output;
 	if (!slicefile)
 	{
-		printf("error opening file %i, %i, %i\n", obstacle[0], obstacle[1], obstacle[2]);
+		printf("error 0 opening file %i, %i, %i\n", obstacle[0], obstacle[1], obstacle[2]);
 		return output;
 	}
 	int pointscontrolled;
@@ -213,7 +213,7 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 		}
 		
 		for (int j = 0; j < binned_obstacles.size(); j++){
-			std::ifstream obstfile(("/home/andrej/Workspace/cspoutput/4dlow/slice_"+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
+			std::ifstream obstfile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_"+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
 			if (!obstfile)
 			{
 				printf("error 2 opening file %i, %i, %i\n", binned_obstacles[j][0], binned_obstacles[j][1], binned_obstacles[j][2]);
@@ -339,7 +339,7 @@ vector<float> cspaceconverter::get_smoothest_configuration(vector<float> par_vec
 	vector<float> output;
 	if (!slicefile)
 	{
-		printf("error opening file %i, %i, %i\n", binned_vector[0], binned_vector[1], binned_vector[2]);
+		printf("error 3 opening file %i, %i, %i\n", binned_vector[0], binned_vector[1], binned_vector[2]);
 		return output;
 	}
 	int pointscontrolled;
@@ -376,11 +376,16 @@ vector<float> cspaceconverter::get_smoothest_configuration(vector<float> par_vec
 		}
 		linecount++;
 	}
+	if (linecount == 0){
+		printf("Error: no lines in file %i, %i, %i \n", binned_vector[0], binned_vector[1], binned_vector[2]);
+		sleep(5);
+	}
 	if (mindist > 99999.9)
 		printf("Error: no configuration found for point; %i, %i, %i over %i lines\n", binned_vector[0], binned_vector[1], binned_vector[2], linecount);
-	if (output.size() <1)
-		printf("Error: bad output size %i, dist is %i\n", output.size(), mindist);
-	//printf("Found configuration over %i lines for point %i, %i, %i\n", linecount, binned_vector[0], binned_vector[1], binned_vector[2]);
+	if (output.size() <1){
+		printf("Error: bad output size %i, dist is %f\n", output.size(), mindist);
+	sleep(5);
+	}//printf("Found configuration over %i lines for point %i, %i, %i\n", linecount, binned_vector[0], binned_vector[1], binned_vector[2]);
 	return output;
 
 }

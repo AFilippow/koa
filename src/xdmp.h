@@ -1,15 +1,16 @@
 
 #include "vectormath.h"
 
-#define ALPHA_Z 0.75		//original values are 0.75 and alpha_z / 4
+#define ALPHA_Z 0.8		//original values are 0.75 and alpha_z / 4
 #define BETA_Z ALPHA_Z/4
 #define ALPHA_V 1.0
 #define ALPHA_W 1.0
 
 //#define LAMBDA 0.5
-#define BETA 2.0
+#define BETA 3.0
 #define DISTANCE_SHORTENER 0.01//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
 #define CALCULATED_GRADIENT 1
+#define PHASE_STOPPING 0
 class xDMP {
 	public:
 		xDMP();

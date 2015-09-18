@@ -24,6 +24,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 
 #include <sstream>
+#include <time.h>
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>

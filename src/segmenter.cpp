@@ -28,7 +28,8 @@ pclsegmenter::pclsegmenter()
 }*/
 
 int pclsegmenter::segment()
-{
+{	
+
 	if (!rawCloud)
 	{
 		std::cout << "no point cloud passed to segmenter, aborting segmentation \n";
@@ -38,7 +39,8 @@ int pclsegmenter::segment()
 	{
 		std::cout << "empty point cloud passed to segmenter, aborting segmentation \n";
 		return 0;
-	}
+	}	
+
 	//initialise
 	filteredCloud.reset(new mPointCloudType);
 	coloredCloud.reset(new mPointCloudTypeColor);
@@ -46,13 +48,15 @@ int pclsegmenter::segment()
 	pcl::PassThrough<pcl::PointXYZ> pass;
 	pass.setInputCloud (rawCloud);
 	pass.setFilterFieldName ("z");
-	pass.setFilterLimits (-0.1, 0.9);
+	pass.setFilterLimits (0.04, 0.9);
 	pass.filter (*rawCloud);
+
 	pass.setInputCloud (rawCloud);
-	pass.setFilterFieldName ("x");
-	pass.setFilterLimits (-1.71, 1.2);
+	pass.setFilterFieldName ("y");
+	pass.setFilterLimits (-1, 1);
 	pass.filter (*filteredCloud);
 	pcl::search::KdTree<mPointType>::Ptr tree (new pcl::search::KdTree<mPointType> ());
+
 	///this plane segmentation is unnecessary right now
 	/*pcl::NormalEstimation<mPointType, pcl::Normal> ne;
 	ne.setInputCloud(rawCloud);
@@ -130,6 +134,7 @@ int pclsegmenter::segment()
 	ec.setSearchMethod (tree);
 	ec.setInputCloud (filteredCloud);
 	ec.extract (cluster_indices);
+
 	///copyPointCloud(*filteredCloud, *coloredCloud);
 	coloredCloud->width = filteredCloud->width;
 	coloredCloud->height = filteredCloud->height;
@@ -172,7 +177,7 @@ int pclsegmenter::segment()
 	int j = findClosestPoints();
 	//std::cout << j <<" obstacles found \n";
 	return j;
-	
+
 }
 
 int pclsegmenter::findCentersOfMass()
