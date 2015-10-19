@@ -4,20 +4,21 @@
 using namespace std;
 using namespace KDL;
 cspaceconverter::cspaceconverter(){
-	baseframe = KDL::Frame(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330) ) ;
+	baseframe = KDL::Frame(KDL::Rotation::Quaternion(0.446, 0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330) ) ;
+	mode = 1;
 	KukaChain = KukaLWR_DHnew();
 	kinematic_solver = new ChainFkSolverPos_recursive(KukaChain);
 	jointNumber = KukaChain.getNrOfJoints();
 	lowerbounds = new float[3];
 	upperbounds = new float[3];
-	lowerbounds[0] = -0.55;
-	lowerbounds[1] = -0.05;
-	lowerbounds[2] = 0;
-	upperbounds[0] = 0.35;
-	upperbounds[1] = 0.85;
-	upperbounds[2] = 0.6;
-	xycoarseness = 61; 
-	zcoarseness = 41;
+	lowerbounds[0] = -0.7;
+	lowerbounds[1] = -0.7;
+	lowerbounds[2] = 0.4;
+	upperbounds[0] = 0.7;
+	upperbounds[1] = 0.7;
+	upperbounds[2] = 1.4;
+	xycoarseness = 71; 
+	zcoarseness = 51;
 	pointsconsidered = 30;
 
 }
@@ -27,7 +28,7 @@ float vectordistance(vector<float> x, vector<float> y)
 	float output = 0;
 	difference.resize(x.size());
 	if (x.size() != y.size()) {
-		cout << "Vector subtraction error: sizes not the same!\n";
+		printf("Vector subtraction error: sizes not the same! x.size() = %i, y.size() = %i.\n",x.size(), y.size() );
 		return 100000;
 	}
 	for (unsigned int i =0; i < x.size(); i++)
@@ -43,11 +44,11 @@ float vectordistance(vector<float> x, vector<int> y)
 }
 
 std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<int> obstacle, int num_points){
-	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
+	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dsreduced/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
 	std::list<vector<float> > output;
 	if (!slicefile)
 	{
-		printf("error 0 opening file %i, %i, %i\n", obstacle[0], obstacle[1], obstacle[2]);
+		//printf("error 0 opening file %i, %i, %i\n", obstacle[0], obstacle[1], obstacle[2]);
 		return output;
 	}
 	int pointscontrolled;
@@ -109,7 +110,115 @@ vector<float> unbin(vector<int> par_vec, float* lowerbounds, float* upperbounds,
 	return output;
 	
 }
+vector<int> to_binned_vector(KDL::Vector par_kdlvector, float* lowerbounds, float* upperbounds, float xycoarseness, float zcoarseness){
+	vector<int> output(3);
+	output[0] = floor((par_kdlvector(0)-lowerbounds[0])*xycoarseness/(upperbounds[0]-lowerbounds[0]));
+	output[1] = floor((par_kdlvector(1)-lowerbounds[1])*xycoarseness/(upperbounds[1]-lowerbounds[1]));
+	output[2] = floor((par_kdlvector(2)-lowerbounds[2])*zcoarseness/(upperbounds[2]-lowerbounds[2]));
+	return output;
+}
 
+vector< float > append_to_begining(float par_a, float par_b, vector<float> par_vector){
+	vector<float> output(par_vector.size()+2);
+	for (int i = 0; i < par_vector.size(); i++)
+		output[i+2] = par_vector[i];
+	output[0] = par_a;
+	output[1] = par_b;
+	
+	return output;
+}
+
+
+void* update_obstacle_list_split(void* par_void){
+	///set up forward kinematics
+	//add baseframe here
+	lister_parameters params = *(lister_parameters*) par_void;
+	Chain KukaChain = KukaLWR_DHnew();
+	ChainFkSolverPos_recursive kinematic_solver(KukaChain);
+	KDL::Frame cartpos;
+	KDL::Frame k(KDL::Rotation::Quaternion(0.446, 0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.300)  );
+	KDL::Vector newpos;
+	KDL::JntArray q(7);
+	for ( int i = 0; i < 7; i++){
+		q(i) = 0;
+	}
+	kinematic_solver.JntToCart(q, cartpos, 3);
+	KDL::Frame inverse_null = cartpos;
+	
+	while (true){
+		vector<vector<int> > binned_obstacles(0);
+		vector<vector<float> > local_obstacles(0);
+		vector<float> position;
+		///grab stuff
+		pthread_mutex_lock(params.position_lock);
+		position = *(params.position);
+		pthread_mutex_unlock(params.position_lock);
+		if (position.size() < 1){
+			printf("No position received:\n");
+			sleep(2);
+			continue;
+		}
+		for ( int i = 0; i < position.size(); i++){
+			q(i) = position[i];
+		}
+		q(6) = 0;
+		KDL::JntArray q_temp(7);
+		//printf("received: %f, %f, %f, %f \n", position[0], position[1], position[2], position[3]);
+		
+		
+		pthread_mutex_lock(params.list_lock);	
+		std::list<vector<float> >::iterator iter;
+		for (iter = params.obstacle_list->begin(); iter != params.obstacle_list->end(); iter++){
+			//uniquely_bin(&binned_obstacles, *iter, params.converter->lowerbounds, params.converter->upperbounds, params.converter->xycoarseness, params.converter->zcoarseness);
+			local_obstacles.push_back(*iter);
+		}
+		pthread_mutex_unlock(params.list_lock);
+		
+		std::list< vector < float > > concat_obstacle_list;
+		std::list < float> dist_list;
+		
+		vector< vector < float > >::iterator iter2;
+		//for (iter2 = binned_obstacles.begin(); iter2 != binned_obstacles.end(); iter2++){
+		///over all obstacles:
+		for (iter2 = local_obstacles.begin(); iter2 != local_obstacles.end(); iter2++){
+				KDL::Vector obstacle((*iter2)[0], (*iter2)[1], (*iter2)[2]);
+				
+			for (float i = q(0)-0.05; i <= q(0)+0.05; i += 0.01)
+				for (float j = q(1)-0.05; j <= q(1)+0.05; j += 0.01){
+					q_temp = q;
+					q_temp(0) = i;
+					q_temp(1) = j;
+					
+					kinematic_solver.JntToCart(q_temp, cartpos, 3);
+					newpos = inverse_null*cartpos.Inverse(k.Inverse(obstacle));
+					//printf("newpos is %f %f %f \n", newpos.x(), newpos.y(), newpos.z());
+					vector<int> bobs = to_binned_vector(newpos, params.converter->lowerbounds, params.converter->upperbounds, params.converter->xycoarseness, params.converter->zcoarseness);
+					///need to add first two coords to newlist
+					std::list<vector<float> > newlist = load_closest_obstacle(position, bobs, params.converter->pointsconsidered);
+					std::list< vector < float > >::iterator iter3;
+					float diminishingFactor = 1;
+					for(iter3 = newlist.begin(); iter3!= newlist.end(); iter3++){
+						(*iter3)[0] = i;
+						(*iter3)[1] = j;
+						
+						//*iter3 = append_to_begining(i, j, *iter3);
+						dist_list.push_back(diminishingFactor*vectordistance(position, *iter3));
+					}
+					concat_obstacle_list.splice(concat_obstacle_list.end(), newlist);
+				}
+		
+		}
+		int listsize = concat_obstacle_list.size();
+		//printf("generated %i positions\n", listsize);
+		pthread_mutex_lock(params.configuration_lock);
+		params.distances_list->clear();
+		*(params.distances_list) = dist_list;
+		*(params.configuration_list) = concat_obstacle_list;
+		pthread_mutex_unlock(params.configuration_lock);
+		//sleep(1);
+	
+	}
+}
 
 void* update_obstacle_list(void* par_void){
 	lister_parameters params = *(lister_parameters*) par_void;
@@ -164,7 +273,7 @@ void* update_obstacle_list(void* par_void){
 	}
 }
 
-vector<float> cspaceconverter::get_safest_configuration(vector<float> par_position, vector< vector <float> > obstacles){
+vector<float> cspaceconverter::get_safest_configuration(vector<float> par_position, vector< vector <float> > obstacles){  ///TODO NOT FIXED
 	int dim = 4;
 	vector<float> best_configuration(0,0);
 	if (par_position[0] < lowerbounds[0] || par_position[1]  < lowerbounds[1] || par_position[2]  < lowerbounds[2] || par_position[0]  > upperbounds[0] || par_position[1]  > upperbounds[1] || par_position[2]  > upperbounds[2]){
@@ -213,7 +322,7 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 		}
 		
 		for (int j = 0; j < binned_obstacles.size(); j++){
-			std::ifstream obstfile(("/home/andrej/Workspace/cspoutput/4dreduced/slice_"+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
+			std::ifstream obstfile(("/home/andrej/Workspace/cspoutput/4dsreduced/slice_"+boost::to_string(binned_obstacles[j][0])+"_"+boost::to_string(binned_obstacles[j][1])+"_"+boost::to_string(binned_obstacles[j][2])+".dat").c_str(), ios::in);
 			if (!obstfile)
 			{
 				printf("error 2 opening file %i, %i, %i\n", binned_obstacles[j][0], binned_obstacles[j][1], binned_obstacles[j][2]);
@@ -247,7 +356,10 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 void cspaceconverter::launch_obstacle_thread(){
 	pthread_t thread;
 	lister_parameters* t = new lister_parameters(this, &list_lock, &position_lock, &configuration_lock, &position, &obstacle_list, &configuration_list, &distances_list); 
-	int rc = pthread_create(&thread, NULL, update_obstacle_list, (void *)t);
+	if (mode == 0)
+		int rc = pthread_create(&thread, NULL, update_obstacle_list, (void *)t);
+	else
+		int rc = pthread_create(&thread, NULL, update_obstacle_list_split, (void *)t);
      
 	
 }
@@ -330,7 +442,7 @@ vector<float> cspaceconverter::get_distances_as_vectors(){
 	
 	
 }
-vector<float> cspaceconverter::get_smoothest_configuration(vector<float> par_vector){
+vector<float> cspaceconverter::get_smoothest_configuration(vector<float> par_vector){  ///TODO NOT FIXED
 	vector<int> binned_vector(3);
 	binned_vector[0] = floor((par_vector[0]-lowerbounds[0])*61/(upperbounds[0]-lowerbounds[0])); //WARNING: 4dhandonly uses its own parameters
 	binned_vector[1] = floor((par_vector[1]-lowerbounds[1])*61/(upperbounds[1]-lowerbounds[1]));

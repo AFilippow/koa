@@ -7,10 +7,10 @@
 #define ALPHA_W 1.0
 
 //#define LAMBDA 0.5
-#define BETA 3.0
-#define DISTANCE_SHORTENER 0.01//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
+//#define BETA 2.0
+#define DISTANCE_SHORTENER 0.05//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
 #define CALCULATED_GRADIENT 1
-#define PHASE_STOPPING 0
+#define PHASE_STOPPING 1
 class xDMP {
 	public:
 		xDMP();
@@ -48,7 +48,9 @@ class xDMP {
 		float repulsive_field_value(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance);
 		vector<float> gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
 		vector<float> mat_gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
+		vector<float> secondary_avoidance(std::vector<float> par_y);
 	float LAMBDA;
+	float BETA;
 	float motion_persistence_weight;
 	vector<float> dy;
 	vector<float> dz_previous;
@@ -74,7 +76,7 @@ class xDMP {
       int timestep;
       std::vector<float> s;
       std::vector<float> g;
-   private:
+   public:
       int dimensions;
       float T;
       float dt;

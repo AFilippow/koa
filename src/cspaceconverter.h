@@ -87,6 +87,10 @@ struct lister_parameters{
 
 class cspaceconverter {
 	public:
+	int mode; ///IMPORTANT 0 is 4d regular, 1 is 4d split with partial generation
+	
+	
+	
 	
 	Chain KukaChain;
 	ChainFkSolverPos_recursive * kinematic_solver;

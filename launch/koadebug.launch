@@ -1,11 +1,10 @@
 <launch>
-        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="gdb -ex run --args">
-                <param name="source" value="vrep/kinect"/>
-                <param name="tracker_topic" value="kinect"/> 
-                <param name="perfect_Obstacle" value="true"/> 
-               <param name="fixed_cloud" value="false"/> 
-               <param name="no_Obstacle" value="false"/> 
-               <param name="goal_topic" value="goal"/>  
+        <node pkg="koa" name="main" type="main" output="screen" launch-prefix="gdb -ex run --args ">
+                <param name="source" value="vrep"/>
+                <param name="tracker_topic" value="kinect"/>
+                <param name="perfect_Obstacle" value="false"/>  
+                <param name="fixed_cloud" value="false"/>  
+                <param name="goal_topic" value="goal"/>  
                 <param name="output_topic" value="jointArray"/>  
 	    </node>   
 </launch>

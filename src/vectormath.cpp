@@ -28,7 +28,7 @@ vector<float> vector_difference(vector<float> x, vector<float> y)
 	vector<float> difference;
 	difference.resize(x.size());
 	if (x.size() != y.size()) {
-		cout << "Vector subtraction error: sizes not the same!\n";
+		cout << "Vector subtraction error: size not the same!\n";
 		return difference;
 	}
 
@@ -43,7 +43,7 @@ vector<float> vector_sum(vector<float> x, vector<float> y)
 	vector<float> sum;
 	sum.resize(x.size());
 	if (x.size() != y.size()) {
-		cout << "Vector multiplication error: sizes not the same!\n";
+		cout << "Vector addition error: sizes not the same!\n";
 		return sum;
 	}
 

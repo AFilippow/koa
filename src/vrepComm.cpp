@@ -4,7 +4,7 @@
 using namespace std;
 
 vrepComm::vrepComm(ros::NodeHandle *parentnh){
-	
+	jacobianUpdated = 1;
 	anyCollision = 0;
 	cubeDistance = 0;
 	brickDistance = 0;
@@ -26,9 +26,59 @@ vrepComm::vrepComm(ros::NodeHandle *parentnh){
 	collisionResponses[2] = nh->subscribe<std_msgs::Int32>("/vrep/cylinderCollision", 1, &vrepComm::callback, this);
 	jointValues = new ros::Publisher;
 	*jointValues = nh->advertise<std_msgs::String>("koa/jointValString",1);
+	Jacobian = new ros::Subscriber[2];
+	Jacobian[0] = nh->subscribe<std_msgs::String>("/vrep/Jacobian0",1, &vrepComm::jacobianCallback, this);
+	Jacobian[1] = nh->subscribe<std_msgs::String>("/vrep/Jacobian1",1, &vrepComm::jacobianCallback1, this);
+	
+	Joints = new ros::Subscriber;
+	*Joints = nh->subscribe<std_msgs::String>("/vrep/JointValues",1, &vrepComm::jointvalueCallback, this);
 	distanceData =  new ros::Subscriber[2];
 	distanceData[0] = nh->subscribe<std_msgs::Float32>("/vrep/cubeDistance", 1, &vrepComm::cubeDistanceCallback, this);
 	distanceData[1] = nh->subscribe<std_msgs::Float32>("/vrep/brickDistance", 1, &vrepComm::brickDistanceCallback, this);
+}
+void vrepComm::jointvalueCallback(const std_msgs::String inputROSMsg_tracker){
+	string input = inputROSMsg_tracker.data;
+	//VREP occasionally uses commas as decimal separators
+	std::replace(input.begin(), input.end(), ',', '.'); 
+	std::istringstream iss((input));
+	joints.resize(0);
+	double number;
+	while (iss){
+		iss >> number;
+		joints.push_back(number);
+		if (iss.eof()) break;
+	}
+
+
+}
+void vrepComm::jacobianCallback(const std_msgs::String inputROSMsg_tracker){
+	string input = inputROSMsg_tracker.data;
+	//VREP occasionally uses commas as decimal separators
+	std::replace(input.begin(), input.end(), ',', '.'); 
+	//printf("received %s \n", input.c_str());
+	std::istringstream iss((input));
+	jacobian.resize(0);
+	double number;
+	while (iss){
+		iss >> number;
+		jacobian.push_back(number);
+	}
+	jacobianUpdated = 1;
+
+}
+void vrepComm::jacobianCallback1(const std_msgs::String inputROSMsg_tracker){
+	string input = inputROSMsg_tracker.data;
+	//VREP occasionally uses commas as decimal separators
+	std::replace(input.begin(), input.end(), ',', '.'); 
+	std::istringstream iss((input));
+	jacobian1.resize(0);
+	double number;
+	while (iss){
+		iss >> number;
+		jacobian1.push_back(number);
+	}
+	jacobianUpdated = 1;
+
 }
 
 void vrepComm::callback(const std_msgs::Int32 inputROSMsg_tracker)

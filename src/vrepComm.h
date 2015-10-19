@@ -16,7 +16,7 @@
  * 
  * 
  * */
-
+using namespace std;
 class vrepComm {
 public:
 	ros::Publisher* obstaclePositions;
@@ -24,7 +24,12 @@ public:
 	ros::Publisher* ikPosition;
 	ros::Publisher* jointValues;
 	ros::Subscriber* collisionResponses;
+	ros::Subscriber* Jacobian;
+	ros::Subscriber* Joints;
 	ros::NodeHandle* nh;
+	vector<float> jacobian;
+	vector<float> jacobian1;
+	vector<float> joints;
 	int anyCollision;
 	float cubeDistance;
 	float brickDistance;
@@ -37,5 +42,11 @@ public:
 	void placeIKTarget(float x, float y, float z);
 	void sendJointAngles(float* val);
 	void sendJointAngles( std::vector<float> val);
-	
+	void jacobianCallback(const std_msgs::String inputROSMsg_tracker);
+	void jacobianCallback1(const std_msgs::String inputROSMsg_tracker);
+	void jointvalueCallback(const std_msgs::String inputROSMsg_tracker);
+	vector<float> getJacobian() {jacobianUpdated = 0;return jacobian;}
+	vector<float> getJacobian1() {jacobianUpdated = 0;return jacobian1;}
+	vector<float> getJoints() {return joints;}
+	bool jacobianUpdated;
 };

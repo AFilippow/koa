@@ -27,8 +27,9 @@ xDMP::~xDMP(){
 
 void xDMP::init_dmp(int dim, std::vector<float> start, std::vector<float> goal, float total_t, float delta_t, float temp_scaling, int n_kernels, float width){
 	//DISTANCE_SHORTENER = 0.10;
-	LAMBDA = 0.003;
-	motion_persistence_weight = 0.15;
+	LAMBDA = 1;
+	BETA = 2;
+	motion_persistence_weight = 0.5;
 	
 	dimensions = dim;
 	s=start;
@@ -97,6 +98,27 @@ void xDMP::reset()
 	persistent_deviation.resize(dimensions,0);
 }
 
+vector<float> xDMP::secondary_avoidance(std::vector<float> par_y){
+		vector<float> output(dimensions, 0);
+		vector<float> current_dz_addition;
+		float avoidances = 0;
+		if (obstacle.size()>0)
+		{
+			for(int i = 0; i < obstacle.size(); i+=dimensions)
+			{
+				vector<float> o(obstacle.begin()+i, obstacle.begin()+i+dimensions);
+				//printf("Vector o: %f \t %f \t %f \n", obstacle[i+0], obstacle[i+1], obstacle[i+2]);
+				current_dz_addition = avoid_obstacle_other_way(o, par_y, dy, vector_length(vector_difference(par_y, o)), tau);///good old one
+				//current_dz_addition = avoid_obstacle_other_way(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau); ///new experimental one 
+				//fprintf(forces,"%f \t", vector_length(current_dz_addition));
+				//printf("0 current_dz_addition: %f %f %f \n", current_dz_addition[0], current_dz_addition[1], current_dz_addition[2]);
+				if (vector_length(current_dz_addition) >= 0.0001)
+					avoidances+=1.0;
+				output = vector_sum(output, current_dz_addition); 
+				}
+		}	
+		return output;
+}
 
 void xDMP::calculate_one_step_dmp(float t){
 	double dv;
@@ -163,9 +185,13 @@ void xDMP::calculate_one_step_dmp(float t){
 		vector<float> radialR = vector_difference(y, g);
 		float rlength = vector_length(vector_difference(g, r));
 		float distance_to_goal = vector_length(vector_difference(y, g));
+		if (distance_to_goal < 0.01){
+			printf(" error: distance to goal too small\n");
+		}
+		radialR= scalar_product(rlength / distance_to_goal, radialR);
 	//printf("0 g: %f %f %f \n", g[0], g[1], g[2]);
 	//printf("0 r: %f %f %f \n", r[0], r[1], r[2]);
-		radialR= scalar_product(rlength / distance_to_goal, radialR);
+
 		radialR= vector_sum(g, radialR);
 		//fprintf(goalfunction, "%i \t %f \t %f \t %f \t %f \n", timestep, r[0], r[1], radialR[0], radialR[1]);
 		//experimental: if the speed is to high, we slow it down and ...
@@ -200,11 +226,12 @@ void xDMP::calculate_one_step_dmp(float t){
 			for(int i = 0; i < obstacle.size(); i+=dimensions)
 			{
 				vector<float> o(obstacle.begin()+i, obstacle.begin()+i+dimensions);
-				//printf("Vector o: %f \t %f \t %f \t %f \n", obstacle[i+0], obstacle[i+1], obstacle[i+2], obstacle[i+3]);
+				//printf("Vector o-y: %f \t %f \t %f\n", obstacle[i+0]-y[0], obstacle[i+1]-y[1], obstacle[i+2]-y[2]);
 				current_dz_addition = avoid_obstacle(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau);///good old one
 				//current_dz_addition = avoid_obstacle_other_way(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau); ///new experimental one 
 				//fprintf(forces,"%f \t", vector_length(current_dz_addition));
-					//printf("0 current_dz_addition: %f %f %f \n", current_dz_addition[0], current_dz_addition[1], current_dz_addition[2]);
+				//printf("direction of motion: %f %f %f  total %f\n", dy[0], dy[1], dy[2], vector_length(dy));
+				//printf("1 current_dz_addition: %f %f %f  total %f\n", current_dz_addition[0], current_dz_addition[1], current_dz_addition[2], vector_length(current_dz_addition));
 				if (vector_length(current_dz_addition) >= 0.0001)
 					avoidances+=1.0;
 				dz_addition = vector_sum(dz_addition, current_dz_addition); 
@@ -244,10 +271,10 @@ void xDMP::calculate_one_step_dmp(float t){
 		table_evasion[2] = exp(-50*y[2]);
 		dz_addition = vector_sum(dz_addition, table_evasion);*/
 		//avoidance addition
-		if (avoidances > 2.0){
+		/*if (avoidances > 2.0){
 			dz_addition = scalar_product(1/avoidances, dz_addition);
-		}
-	//printf("0 dz_addition: %f %f %f \n", dz_addition[0], dz_addition[1], dz_addition[2]);
+		}*/
+		//printf("0 dz_addition: %f %f %f \n", dz_addition[0], dz_addition[1], dz_addition[2]);
 		float goal_distance = vector_length(vector_difference(y,g));
 		if (goal_distance < 0.8)
 			dz_addition = scalar_product(goal_distance/0.8, dz_addition);
@@ -260,14 +287,15 @@ void xDMP::calculate_one_step_dmp(float t){
 			if (abs(y[i])>1.7)
 				dz[i] -= (y[i]-1.7)*(y[i]+1.7)*y[i]/1000;
 		}*/
-		if (y[0]>-0.349 || y[0] < -1.745)
+		///TODO the next part is important for CSP
+		/*if (y[0]>-0.349 || y[0] < -1.745)
 			dz[0] -= (y[0]+0.349 )*(y[0]+1.745)*y[0]/1000;
 		if (y[1]>-0.349|| y[1] < -2.0943)
 			dz[1] -= (y[1]+0.349 )*(y[1]+2.0943)*y[1]/1000;	
 		if (y[2]>1.745 || y[2] < -0.349)
 			dz[2] -= (y[2]-1.745 )*(y[2]+0.349)*y[2]/1000;
 		if (y[3]>2.0943 || y[3] < -0.6981)
-			dz[3] -= (y[3]-2.0943 )*(y[3]+0.6981)*y[3]/1000;
+			dz[3] -= (y[3]-2.0943 )*(y[3]+0.6981)*y[3]/1000;*/
 	
 		
 		//second half of calculation step
@@ -439,7 +467,8 @@ vector<float> xDMP::avoid_obstacle( vector<float> obstacle, vector<float> mobile
 	
 	if (cos_angle < 0 )//(acos(cos_angle) <= 3.141527/4 /*&& acos(cos_angle) < 3.141527*/)
 		{
-			float p = distance;
+			//float p = distance;
+			float p  = vector_length(vector_from_obstacle_to_actuator)-DISTANCE_SHORTENER;
 			float pstrike = vector_length(vector_from_obstacle_to_actuator);
 			//std::cout << "Distance p: shortest:"<< p << "\t cos of angle "<< cos_angle << std::endl ;
 			if (p == -1) p = vector_length(vector_from_obstacle_to_actuator);
@@ -467,11 +496,11 @@ vector<float> xDMP::avoid_obstacle( vector<float> obstacle, vector<float> mobile
 			{
 				total_deviation+= deviation[i]*deviation[i];
 			}
-			deviation[0] *= 0.5;
-			deviation[1] *= 0.5;
-			/*if (total_deviation >= 0.05*0.05)
+			/*deviation[0] *= 0.5;
+			deviation[1] *= 0.5;*/
+			if (total_deviation >= 0.05*0.05)
 				for(int i = 0; i < dimensions; i++)
-					deviation[i] = deviation[i] * 0.05 /sqrt(total_deviation);*/
+					deviation[i] = deviation[i] * 0.05 /sqrt(total_deviation);
 			//std::cout << "deviation: " << deviation[0]*deviation[0]+ deviation[1]*deviation[1] << "\n";
 										//14, 15
 
@@ -513,7 +542,7 @@ void xDMP::scan_vector_field()
 	point[1] = 0;
 	point[2] = 0;
 	vector<float> dy(3);
-	dy[0] = 0.5;
+	dy[0] = 0.005;
 	dy[1] = 0;
 	dy[2] = 0;
 	vector<float> y(3);

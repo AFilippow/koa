@@ -47,8 +47,11 @@
 
 #include "cspaceconverter.h"
 #include "vectormath.h"
+#include <armadillo>
 //SocketComm was written to communicate with the Morse simulator, V-REP does not need it
 //#include "SocketComm.h"
+using namespace arma;
+
 
 #define NIL (0) 
 #define PI 3.14152
@@ -573,7 +576,7 @@ void initGlobalParams(int argc, char** argv){
 }
 
 void initDMP(){
-	dmpDimensions = 4;
+	dmpDimensions = 6;
 	//printf("currently at %s \n", __func__);
 	y.resize(dmpDimensions);
 	std::cout << "Initialising dmp\n";
@@ -676,6 +679,24 @@ void test_file(vrepComm vcom){
 	
 }
 
+void test_split_system(vrepComm vcom, vector<float> points){
+	printf("initiating test:\n");
+	printf("points:%i\n", points.size());
+	int pointscontrolled;
+	int dim = 6;
+	vector<float> loadedpoint(7, 0);
+	vector<float> xyz(3, 0);
+	for (int i = 0; i < points.size(); i+=dim)
+	{	
+		vector<float> current_angle(points.begin()+i, points.begin()+i+dim);
+		current_angle.push_back(0);
+		vcom.sendJointAngles(current_angle);
+		sleep(3);
+	}
+	return;
+	
+}
+
 void save_some_points(vrepComm vcom){
 	FILE * out;
 	out = fopen("/home/andrej/Workspace/somepoints.txt","w");
@@ -746,16 +767,21 @@ void save_some_points(vrepComm vcom){
 	fprintf(out, "%f \t %f \t %f \t \n", position4.x(), position4.y(), position4.z());
 	vcom.moveObstacleNr(3, handposition.x(), handposition.y(), handposition.z());*/
 }
-void set_conf(){
-	s[0] = -55.37/180*PI;
-	s[1] = -45.04/180*PI;
-	s[2] = 28.45/180*PI;
-	s[3] = 90.92/180*PI;
+void set_conf(){	
 	
-	e[0] = -100.0/180*PI;
-	e[1] = -110.0/180*PI;
-	e[2] = 35.0/180*PI;
-	e[3] = 75.0/180*PI;
+	s[0] = 1.7619422333;
+	s[1] = 0.6968258562;
+	s[2] = 0.0573916865;
+	s[3] =-1.7118450067;
+	s[4] =-1.3640108533;
+	s[5] = 1.0479998247;
+	
+	e[0] = 1.93283;
+	e[1] = 1.21486;
+	e[2] = 0.28342;
+	e[3] = -1.8198;
+	e[4] = -1.2332;
+	e[5] = 0.98580;
 	
 	
 	dmp.set_s(s);
@@ -830,6 +856,18 @@ void find_conf(int type){
 }
 
 //---------------------------------------------------------------------------------------------------------------------//
+
+///			
+///		  _____  _____ _____                    _       	
+///		 / ____|/ ____|  __ \                  (_)      
+///     | |    | (___ | |__) |  _ __ ___   __ _ _ _ __  
+///     | |     \___ \|  ___/  | '_ ` _ \ / _` | | '_ \ 
+///     | |____ ____) | |      | | | | | | (_| | | | | |
+///      \_____|_____/|_|      |_| |_| |_|\__,_|_|_| |_|
+///
+///
+ 
+ 
 int main(int argc, char** argv)
 { 
 	float mean_velocity = 0;
@@ -839,49 +877,18 @@ int main(int argc, char** argv)
 	float timesteps = 0;
 	CSP = new cspaceconverter();
 	CSP->launch_obstacle_thread();
-	KDL::Frame k(KDL::Rotation::Quaternion(-0.446, -0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330)  ); //listen to the rotation with "rosrun tf tf_echo KUKA_base world" from console
-	rsy.resize(3, 0);
-	/*vector<float> pos;
-	KDL::JntArray q(7);
-	q(0) = 0;
-	q(1) = 0;
-	q(2) = 0;
-	q(3) = 0;
-	q(4) = 0;
-	q(5) = 0;
-	q(6) = 0;	
 	
-	pos = partialKinematic(q,7);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);	
-	pos = partialKinematic(q,6);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);
-	pos = partialKinematic(q,5);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);
-	pos = partialKinematic(q,4);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);
-	pos = partialKinematic(q,3);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);	
-	pos = partialKinematic(q,2);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);
-	pos = partialKinematic(q,1);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);
-	pos = partialKinematic(q,0);
-	printf("&: %f \t %f \t %f \n", pos[0], pos[1], pos[2]);	
-	return 0;*/
-
-	
-	
-	
-	
-	//CSP->generate_points_data(k);
-	//return 1;
-	
-	
-	//cspobst = fopen("/home/andrej/Workspace/cspaceobstacles.txt","w");
-	//cspobst2 = fopen("/home/andrej/Workspace/cspaceobstacles2.txt","w");
-	//cspobst3 = fopen("/home/andrej/Workspace/cspaceobstacles3.txt","w");
 	ros::init(argc, argv, "koa");
 	ros::NodeHandle nh("~");  
+	vrepComm vcom(&nh);
+	/// last number is 330 for real robot
+	KDL::Frame k(KDL::Rotation::Quaternion(0.446, 0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330)  ); //listen to the rotation with "rosrun tf tf_echo world KUKA_base" from console
+	rsy.resize(3, 0);
+	
+	CSP->mode = 1;
+	
+	
+
 	initGlobalParams(argc, argv);
 	std::string source_, sim_topic_, tracker_topic_;
 	
@@ -905,7 +912,7 @@ int main(int argc, char** argv)
 	//Comm initialisation
 		std::cout << "Initialising VREP Comm...\n";
 	//SocketComm scom;
-	vrepComm vcom(&nh);
+	
 
 
 	/*save_some_points(vcom);
@@ -934,23 +941,24 @@ int main(int argc, char** argv)
 	int trialrun = 0;
 	int trial = 0;
 	string folders[7];
-	string prefix = "series2/dump/";
-	folders[0] = prefix+"05";
-	folders[1] = prefix+"08";
-	folders[2] = prefix+"1";
-	folders[3] = prefix+"3";
+	string prefix = "series3/dump/";
+	folders[0] = prefix+"1";
+	folders[1] = prefix+"2";
+	folders[2] = prefix+"3";
+	folders[3] = prefix+"4";
 	folders[4] = prefix+"5";
-	folders[5] = prefix+"7";
-	folders[6] = prefix+"10";
+	folders[5] = prefix+"6";
+	folders[6] = prefix+"7";
 	float lambda[7];
 	
-	lambda[0] = 0.3;
-	lambda[1] = 0.3;
-	lambda[2] = 0.3;
-	lambda[3] = 0.3;
-	lambda[4] = 0.3;
-	lambda[5] = 0.3;
-	lambda[6] = 0.3; 
+	
+	lambda[0] = 0.01;
+	lambda[1] = 0.01;
+	lambda[2] = 0.01;
+	lambda[3] = 0.01;
+	lambda[4] = 0.01;
+	lambda[5] = 0.01;
+	lambda[6] = 0.01; 
 	
 	
 	string trajectoryoutput = "/home/andrej/Workspace/"+folders[trial]+"/"+boost::lexical_cast<string>(trialrun)+".dat";
@@ -966,7 +974,7 @@ int main(int argc, char** argv)
 	multirun = fopen(trajectoryoutput.c_str(),"w");
 	FILE * datasets;
 	datasets = fopen("/home/andrej/Workspace/xdmp_dts.txt","w");
-	//dmp.LAMBDA = lambda[trial];
+	dmp.LAMBDA = lambda[trial];
 	//CSP->pointsconsidered = lambda[trial];
 
 	//for testing purposes:
