@@ -27,10 +27,12 @@ xDMP::~xDMP(){
 
 void xDMP::init_dmp(int dim, std::vector<float> start, std::vector<float> goal, float total_t, float delta_t, float temp_scaling, int n_kernels, float width){
 	//DISTANCE_SHORTENER = 0.10;
-	LAMBDA = 1;
+	PHASE_STOPPING = 0;
+	LAMBDA = 0.03;
 	BETA = 2;
-	motion_persistence_weight = 0.5;
-	
+	USE_RADIAL_FIELD = 0;
+	motion_persistence_weight = 0.9;
+	NONISOTROPIC = 1;
 	dimensions = dim;
 	s=start;
 	g=goal;
@@ -119,11 +121,19 @@ vector<float> xDMP::secondary_avoidance(std::vector<float> par_y){
 		}	
 		return output;
 }
-
+void xDMP::abort_on_nan(vector<float> vec, int par){
+	for (int i = 0; i < vec.size(); i++)
+	if (isnan(vec[i])){
+		printf("Error: y not a number at %i\n", par);
+		abort();
+	}
+}
 void xDMP::calculate_one_step_dmp(float t){
+	int aaa = 0;
 	double dv;
 	vector<float> dr;
 	vector<float> dz;
+	abort_on_nan(dz, -2);
 	dr.resize(dimensions);
 	dy.resize(dimensions);
 	dz.resize(dimensions);
@@ -171,17 +181,6 @@ void xDMP::calculate_one_step_dmp(float t){
 			//printf("f[%i]: %f \n",j,f[j]);
 			}
 		}
-	//printf("0 y: %f %f %f \n", y[0], y[1], y[2]);
-		// unmodified DMP:
-		//for (int j =0; j < dimensions;j++)
-		//{
-			//f[j]=f[j]/sum_psi;
-			//dz[j]=(1/tau)*(alpha_z*(beta_z*(r[j]-y[j])-z[j])+f[j]);
-			//z[j]=z[j]+dz[j];
-			//dy[j]=(1/tau)*z[j];
-			//y[j]=y[j]+dy[j];
-		//}
-		//Experimental redefinition of R as a radius from the goal
 		vector<float> radialR = vector_difference(y, g);
 		float rlength = vector_length(vector_difference(g, r));
 		float distance_to_goal = vector_length(vector_difference(y, g));
@@ -191,17 +190,25 @@ void xDMP::calculate_one_step_dmp(float t){
 		radialR= scalar_product(rlength / distance_to_goal, radialR);
 	//printf("0 g: %f %f %f \n", g[0], g[1], g[2]);
 	//printf("0 r: %f %f %f \n", r[0], r[1], r[2]);
-
 		radialR= vector_sum(g, radialR);
 		//fprintf(goalfunction, "%i \t %f \t %f \t %f \t %f \n", timestep, r[0], r[1], radialR[0], radialR[1]);
 		//experimental: if the speed is to high, we slow it down and ...
 		float time_scaling_factor = 1;
 	//printf("0 radialR: %f %f %f \n", radialR[0], radialR[1], radialR[2]);
 		//First half
+
 		///here is the transformation half of the DMP system
+
+		
+		
+		abort_on_nan(f, 2);	
+		//printf("%f\n", sum_psi);
 		for (int j =0; j < dimensions;j++)
-		{
-			f[j]=f[j]/sum_psi;
+		{	
+			if (sum_psi != 0)
+				f[j]=f[j]/sum_psi;
+			else
+				f[j] = 0;
 			//EXPERIMENTAL CHANGE
 			//dz[j]=(1/tau)*(alpha_z*(beta_z*(r[j]-y[j])-z[j])+f[j]);
 			dz[j]=(1/tau)*(alpha_z*(beta_z*(radialR[j]-y[j])-z[j])+f[j]);  ///good one
@@ -210,6 +217,9 @@ void xDMP::calculate_one_step_dmp(float t){
 			//float D = alpha_z;
 			//dz[j]=(1/tau)*K*(g[j]-y[j])-D*z[j]/*-K*(g[j]-s[j])*v*/+K*f[j];
 		}
+
+		abort_on_nan(f, 3);	
+	
 			//printf("0 dz: %f %f %f \n", dz[0], dz[1], dz[2]);
 		fprintf(forces,"%i \t %f \t", timestep, vector_length(dz));
 		fprintf(positionAndDistanceOutput, "%i \t %f \t %f \t %f \t", timestep, y[0], y[1], y[2]);
@@ -227,8 +237,10 @@ void xDMP::calculate_one_step_dmp(float t){
 			{
 				vector<float> o(obstacle.begin()+i, obstacle.begin()+i+dimensions);
 				//printf("Vector o-y: %f \t %f \t %f\n", obstacle[i+0]-y[0], obstacle[i+1]-y[1], obstacle[i+2]-y[2]);
-				current_dz_addition = avoid_obstacle(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau);///good old one
-				//current_dz_addition = avoid_obstacle_other_way(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau); ///new experimental one 
+				if (USE_RADIAL_FIELD == 0)
+					current_dz_addition = avoid_obstacle(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau);///good old one
+				else
+					current_dz_addition = avoid_obstacle_other_way(o, y, dy, distances[i/dimensions]-DISTANCE_SHORTENER, tau); ///radial one 
 				//fprintf(forces,"%f \t", vector_length(current_dz_addition));
 				//printf("direction of motion: %f %f %f  total %f\n", dy[0], dy[1], dy[2], vector_length(dy));
 				//printf("1 current_dz_addition: %f %f %f  total %f\n", current_dz_addition[0], current_dz_addition[1], current_dz_addition[2], vector_length(current_dz_addition));
@@ -245,24 +257,26 @@ void xDMP::calculate_one_step_dmp(float t){
 					dz_addition = vector_sum(dz_addition, avoid_obstacle(o, k, currentMotion, local_distance-DISTANCE_SHORTENER, tau));
 				}*/
 			}
+		//printf("Ratio: %f, \n",vector_length(dz_addition)/total_dz);
 		}
-
-		/*double scalar_product_of_additions = 0;
+		/*
+		double scalar_product_of_additions = 0;
 		for (int i = 0; i < dimensions; i++){
 			scalar_product_of_additions += dz_addition[i]*dz_previous[i];
 			printf("scalar product until now: %f\n",scalar_product_of_additions);
 		}
 		scalar_product_of_additions = scalar_product_of_additions/(vector_length(dz_addition)*vector_length(dz_previous));
 		std::cout << scalar_product_of_additions << std::endl;
-		printf("Ratio: %f, consistency %f \n",vector_length(dz_addition)/total_dz), scalar_product_of_additions;
-		printf("dz_previous %f %f %f %f \n",dz_previous[0],dz_previous[1],dz_previous[2],dz_previous[3]);
+		printf("Ratio: %f, consistency %f \n",vector_length(dz_addition)/total_dz, scalar_product_of_additions);
+		//printf("dz_previous %f %f %f %f \n",dz_previous[0],dz_previous[1],dz_previous[2],dz_previous[3]);
 		printf("dz_addition %f %f %f %f \n",dz_addition[0],dz_addition[1],dz_addition[2],dz_addition[3]);
-		printf("vector_length(dz_addition)*vector_length(dz_previous) %f %f %f \n",vector_length(dz_addition)*vector_length(dz_previous),vector_length(dz_addition),vector_length(dz_previous));*/
-		dz_previous = dz_addition;
+		//printf("vector_length(dz_addition)*vector_length(dz_previous) %f %f %f \n",vector_length(dz_addition)*vector_length(dz_previous),vector_length(dz_addition),vector_length(dz_previous));
+		dz_previous = dz_addition;*/
 		fprintf(forces,"%f \t", vector_length(dz_addition));
 						//printf("%i \t",dz_addition.size());
 		fprintf(forces,"\n");
 			fflush(forces);
+
 		fprintf(positionAndDistanceOutput, "\n");
 		//printf("%f additions\n", avoidances);
 		///Table evasion does not work in joint space
@@ -279,32 +293,32 @@ void xDMP::calculate_one_step_dmp(float t){
 		if (goal_distance < 0.8)
 			dz_addition = scalar_product(goal_distance/0.8, dz_addition);
 		dz = vector_sum(dz_addition, dz);
-
-		
-		
 		///spring force towards zero configuration
 		/*for (int i = 0; i < dimensions; i++){  ///something is still wrong here [TODO fix it]
 			if (abs(y[i])>1.7)
 				dz[i] -= (y[i]-1.7)*(y[i]+1.7)*y[i]/1000;
 		}*/
 		///TODO the next part is important for CSP
-		/*if (y[0]>-0.349 || y[0] < -1.745)
-			dz[0] -= (y[0]+0.349 )*(y[0]+1.745)*y[0]/1000;
-		if (y[1]>-0.349|| y[1] < -2.0943)
-			dz[1] -= (y[1]+0.349 )*(y[1]+2.0943)*y[1]/1000;	
-		if (y[2]>1.745 || y[2] < -0.349)
-			dz[2] -= (y[2]-1.745 )*(y[2]+0.349)*y[2]/1000;
-		if (y[3]>2.0943 || y[3] < -0.6981)
-			dz[3] -= (y[3]-2.0943 )*(y[3]+0.6981)*y[3]/1000;*/
-	
-		
+		if (NONISOTROPIC == 1){
+			if (y[2]>2.5 || y[2] < -2.5)
+				dz[2] -= (y[2]-2.5 )*(y[2]+2.5)*y[2]/1000;
+			if (y[3]>1.65 || y[3] < -1.65)
+				dz[3] -= (y[3]-1.65 )*(y[3]+1.65)*y[3]/1000;
+			if (dimensions > 4){
+				if (y[4]>2.0 || y[4] < -2.0)
+					dz[4] -= (y[4]+2.0 )*(y[4]-2.0)*y[4]/1000;
+				if (y[5]>1.7|| y[5] < -1.7)
+					dz[5] -= (y[5]+1.7 )*(y[5]-1.7)*y[5]/1000;
+			}
+		}
 		//second half of calculation step
 		for (int j =0; j < dimensions;j++)
 		{
 			z[j]=z[j]+dz[j];
 			dy[j]=(1/tau)*z[j];
+			
 			//changed here:
-			}
+		}
 		//printf("0 z: %f %f %f \n", z[0], z[1], z[2]);
 				//printf("0 dy: %f %f %f \n", dy[0], dy[1], dy[2]);
 		//velocity limit
@@ -312,27 +326,41 @@ void xDMP::calculate_one_step_dmp(float t){
 				time_scaling_factor = 0.08 / vector_length(dy);
 				dy = scalar_product(time_scaling_factor, dy);
 		}*/
-			y= vector_sum(y,dy);
+		///IMPORTANT fix speed here
+		time_scaling_factor = 1;
+		/*float total_dy = 0;
+			for(int i = 0; i < dimensions; i++)
+			{
+				total_dy+= dy[i]*dy[i];
+			}
+
+			if (total_dy >= 0.001*0.001){
+				for(int i = 0; i < dimensions; i++)
+					dy[i] = dy[i] * 0.001 /sqrt(total_dy);
+				time_scaling_factor *= 0.001 /sqrt(total_dy);
+			}*/
+		y= vector_sum(y,dy);
 		//printf("1 y: %f %f %f \n", y[0], y[1], y[2]);
 
-		
+				
 		//t -= dt*(1-time_scaling_factor);
 		//printf("Time scaling : %f, Velocity %f \n", time_scaling_factor, vector_length(dy));
 
 		//The delayed goal function r causes the DMP to follow the trajectory more closely
 		//reworking
-		if (vector_length(vector_difference(r,g)) > 0.001 && t > 0.05){
+		if (vector_length(vector_difference(r,g)) > 0.01 && t > 0.05){
 			dr=(vector_difference(g,s));
+			if (PHASE_STOPPING == 1 && vector_length(dy) > 0.000001){
+				time_scaling_factor *= scalar_product(vector_difference(g, y), dy)/(vector_length(dy)*vector_length(vector_difference(g, y)));
+				//printf("PHASE STOPPED BY %f \n",time_scaling_factor);
+			}
+			else {
+				time_scaling_factor *= 1;
+				//printf("PHASE NOT STOPPED. %i  %f \n",PHASE_STOPPING,  vector_length(dy) );
+			}
 			for (int i =0; i < dimensions; i ++){
-				if (PHASE_STOPPING){
-					if (vector_length(dy) > 0.001)
-						time_scaling_factor = scalar_product(vector_difference(g, y), dy)/(vector_length(dy)*vector_length(vector_difference(g, y)));
-					else 
-						time_scaling_factor = 1;
-					dr[i]=dr[i]*(1/tau)*(dt/T)*time_scaling_factor;
-				}
-				else
-					dr[i]=dr[i]*(1/tau)*(dt/T);
+				dr[i]=dr[i]*(1/tau)*(dt/T)*time_scaling_factor;
+				//printf("dr[%i] is %f, %f \n",i, dr[i]); 
 			}
 		}
 		else{
@@ -340,8 +368,7 @@ void xDMP::calculate_one_step_dmp(float t){
 				dr[i]=0;
 		}
 		r=vector_sum(r,dr);
-		//r = g;
-		
+		//r = g;		
 		fprintf(speedAndAcceleration, "%i \t %f \t %f \t %f \t %f \t %f \t %f \n", timestep, z[0], z[1], z[2], dz[0], dz[1], dz[2]);
 		
 	}
@@ -382,7 +409,7 @@ vector<float> xDMP::gradient(vector<float> obstacle, vector<float> mobilePoint, 
 		
 		gradient[i] = (repulsive_field_value(obstacle, closePoint1, speed, vector_length(vector_difference(closePoint1, obstacle)))-repulsive_field_value(obstacle, closePoint2, speed, vector_length(vector_difference(closePoint2, obstacle))))/precision/2;
 	}
-	 //printf("gradient: %f,  %f,  %f \n", gradient[0], gradient[1], gradient[2]); 
+	//printf("gradient: %f,  %f,  %f \n", gradient[0], gradient[1], gradient[2]); 
     fprintf(gradientValues, "%i \t %f \t %f \t %f \n",timestep, gradient[0], gradient[1], gradient[2]); 
 
 	return gradient;
@@ -416,7 +443,7 @@ vector<float> xDMP::avoid_obstacle_other_way( vector<float> obstacle, vector<flo
 	for(int i = 0; i < dimensions; i++)
 		fprintf(verbose, "%f \t", y[i]);
 	float euc_distance = vector_length(vector_difference(obstacle, mobilePoint));	
-	float maxdistance = 0.3;
+	float maxdistance = 0.2;
 	distance =euc_distance;
 	//if (distance >= maxdistance)
 	if (euc_distance >= maxdistance)
@@ -435,7 +462,10 @@ vector<float> xDMP::avoid_obstacle_other_way( vector<float> obstacle, vector<flo
 	//printf("Force: %f made of %f, %f, %f, distance: %f\n", force_factor, LAMBDA/500*tau,1/distance/distance/maxdistance,1/distance/distance/distance, euc_distance);
 	for (int i = 0; i < dimensions; i++){
 			//deviation[i]*=0.95;
-		deviation[i]=force_factor*(obstacle[i]-mobilePoint[i])/euc_distance;
+		if (euc_distance > 0.001)
+			deviation[i]=force_factor*(obstacle[i]-mobilePoint[i])/euc_distance;
+		else
+			deviation[i]=force_factor*(obstacle[i]-mobilePoint[i])/0.001;
 		}
 		
 
@@ -462,6 +492,7 @@ vector<float> xDMP::avoid_obstacle( vector<float> obstacle, vector<float> mobile
 	fprintf(cosAngles, "%i \t %f \n", timestep, cos_angle); 
 	/*printf("first vector: %f  %f  %f \n",speed[0], speed[1], speed[2]);
 //printf("second vector: %f  %f  %f \n",vector_from_obstacle_to_actuator[0], vector_from_obstacle_to_actuator[1], vector_from_obstacle_to_actuator[2]);*/
+	fprintf(verbose, "%i \t", timestep);
 	for(int i = 0; i < dimensions; i++)
 		fprintf(verbose, "%f \t", y[i]);
 	
@@ -491,19 +522,28 @@ vector<float> xDMP::avoid_obstacle( vector<float> obstacle, vector<float> mobile
 			fprintf(positionAndDistanceOutput, "%f \t %f \t %f \t %f \t",distance, removeme[0], removeme[1], removeme[2]);*/
 				//printf("Calculated deviation with:\n positional part %f, %f, %f;\n angular part %f, %f, %f;\n", nabla_position[0],nabla_position[1],nabla_position[2],nabla_angle[0],nabla_angle[1],nabla_angle[2]);
 			 //deviation[2] += 0.05*exp(-(cos_angle*cos_angle)*10);
+			if (NONISOTROPIC == 1){
+				deviation[0] /= 0.7;
+				deviation[1] /= 0.7;
+				deviation[2] /= 0.65;
+				deviation[3] /= 0.65;
+				if (dimensions > 4){
+					deviation[4] /= 0.2;
+					deviation[5] /= 0.2;
+				}
+			}   
+
 			float total_deviation = 0;
 			for(int i = 0; i < dimensions; i++)
 			{
 				total_deviation+= deviation[i]*deviation[i];
 			}
-			/*deviation[0] *= 0.5;
-			deviation[1] *= 0.5;*/
-			if (total_deviation >= 0.05*0.05)
-				for(int i = 0; i < dimensions; i++)
-					deviation[i] = deviation[i] * 0.05 /sqrt(total_deviation);
-			//std::cout << "deviation: " << deviation[0]*deviation[0]+ deviation[1]*deviation[1] << "\n";
-										//14, 15
 
+			/*if (total_deviation >= 0.001*0.001)
+				for(int i = 0; i < dimensions; i++)
+					deviation[i] = deviation[i] * 0.001 /sqrt(total_deviation);*/
+			//std::cout << "deviation: " << deviation[0]*deviation[0]+ deviation[1]*deviation[1] << "\n";
+										//14, 15 
 			for(int i = 0; i < dimensions; i++)
 				fprintf(verbose, "%f \t", vector_from_obstacle_to_actuator[i]);
 			for(int i = 0; i < dimensions; i++)

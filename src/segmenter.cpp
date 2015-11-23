@@ -48,12 +48,12 @@ int pclsegmenter::segment()
 	pcl::PassThrough<pcl::PointXYZ> pass;
 	pass.setInputCloud (rawCloud);
 	pass.setFilterFieldName ("z");
-	pass.setFilterLimits (0.04, 0.9);
+	pass.setFilterLimits (0.02, 1.9);
 	pass.filter (*rawCloud);
 
 	pass.setInputCloud (rawCloud);
 	pass.setFilterFieldName ("y");
-	pass.setFilterLimits (-1, 1);
+	pass.setFilterLimits (-1, 2);
 	pass.filter (*filteredCloud);
 	pcl::search::KdTree<mPointType>::Ptr tree (new pcl::search::KdTree<mPointType> ());
 

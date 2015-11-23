@@ -10,7 +10,7 @@
 //#define BETA 2.0
 #define DISTANCE_SHORTENER 0.05//7 ///We cut this value in m off of every Distance to an obstacle to account for the finite size of the end effector
 #define CALCULATED_GRADIENT 1
-#define PHASE_STOPPING 1
+//#define PHASE_STOPPING 0
 class xDMP {
 	public:
 		xDMP();
@@ -33,6 +33,7 @@ class xDMP {
 		void set_y(std::vector<float> input) {y=input;}
 		void set_tracking(std::vector<float> k) {trackingPoints = k;}
 		void scan_vector_field();
+		void abort_on_nan(vector<float> vec, int par);
 		std::vector<float> get_f() {return f;}
 		float get_v() {return v;}
 		std::vector<float> get_r() {return r;}
@@ -49,8 +50,7 @@ class xDMP {
 		vector<float> gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
 		vector<float> mat_gradient(vector<float> obstacle, vector<float> mobilePoint, vector<float> speed, float distance, float tau);
 		vector<float> secondary_avoidance(std::vector<float> par_y);
-	float LAMBDA;
-	float BETA;
+
 	float motion_persistence_weight;
 	vector<float> dy;
 	vector<float> dz_previous;
@@ -77,6 +77,11 @@ class xDMP {
       std::vector<float> s;
       std::vector<float> g;
    public:
+	  int PHASE_STOPPING;
+	  float LAMBDA;
+	  float BETA;
+	  int USE_RADIAL_FIELD;
+	  int NONISOTROPIC;
       int dimensions;
       float T;
       float dt;

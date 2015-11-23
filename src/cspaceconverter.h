@@ -67,18 +67,22 @@ struct lister_parameters{
 	pthread_mutex_t* list_lock;
 	pthread_mutex_t* position_lock;
 	pthread_mutex_t* configuration_lock;
+	pthread_mutex_t* intermediate_configuration_lock;
 	vector<float>* position;
 	list<vector<float> >* obstacle_list;
+	list<vector<float> >* intermediate_configuration_list;
 	list<vector<float> >* configuration_list;
 	list<float>* distances_list;
 	cspaceconverter* converter;
-	lister_parameters(cspaceconverter* par_csp, pthread_mutex_t* par_ll, pthread_mutex_t* par_pl, pthread_mutex_t* par_cl, vector<float>* par_pos, list<vector<float> >* par_list, list<vector<float> >* par_conf, list<float>* par_dist){
+	lister_parameters(cspaceconverter* par_csp, pthread_mutex_t* par_ll, pthread_mutex_t* par_pl, pthread_mutex_t* par_cl, pthread_mutex_t* par_icl, vector<float>* par_pos, list<vector<float> >* par_list, list<vector<float> >* par_int_conf, list<vector<float> >* par_conf, list<float>* par_dist){
 		converter = par_csp;
 		list_lock = par_ll;
 		position_lock = par_pl;
 		configuration_lock = par_cl;
+		intermediate_configuration_lock = par_icl;
 		position = par_pos;
 		obstacle_list = par_list;
+		intermediate_configuration_list = par_int_conf;
 		configuration_list = par_conf;
 		distances_list = par_dist;
 	}
@@ -99,12 +103,14 @@ class cspaceconverter {
 	int max_list_size;
 	std::list<vector<float> > obstacle_list;
 	std::list<vector<float> > configuration_list;
+	std::list<vector<float> > intermediate_configuration_list;
 	std::list<float> distances_list;
 	vector<float> position;
 	int pointsconsidered;
 	pthread_mutex_t list_lock;
 	pthread_mutex_t position_lock;
 	pthread_mutex_t configuration_lock;
+	pthread_mutex_t intermediate_configuration_lock;
 	float* lowerbounds, *upperbounds;
 	float xycoarseness, zcoarseness;
 	vector<float> get_configurations_as_vectors();

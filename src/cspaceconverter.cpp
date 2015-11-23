@@ -19,7 +19,11 @@ cspaceconverter::cspaceconverter(){
 	upperbounds[2] = 1.4;
 	xycoarseness = 71; 
 	zcoarseness = 51;
-	pointsconsidered = 30;
+	pointsconsidered = 100;
+	pthread_mutex_init(&list_lock, NULL);
+	pthread_mutex_init(&position_lock, NULL);
+	pthread_mutex_init(&configuration_lock, NULL);
+	pthread_mutex_init(&intermediate_configuration_lock, NULL);
 
 }
 float vectordistance(vector<float> x, vector<float> y)
@@ -31,8 +35,15 @@ float vectordistance(vector<float> x, vector<float> y)
 		printf("Vector subtraction error: sizes not the same! x.size() = %i, y.size() = %i.\n",x.size(), y.size() );
 		return 100000;
 	}
+	/*vector<float> weight(6);
+	weight[0] = 0.8;
+	weight[1] = 0.8;
+	weight[2] = 0.65;
+	weight[3] = 0.65;
+	weight[4] = 0.2;
+	weight[5] = 0.2;*/
 	for (unsigned int i =0; i < x.size(); i++)
-		output += (x[i]-y[i])*(x[i]-y[i]);
+		output += (x[i]-y[i])*(x[i]-y[i]);//*weight[i];
 	return sqrt(output);
 }
 float vectordistance(vector<float> x, vector<int> y)
@@ -42,6 +53,8 @@ float vectordistance(vector<float> x, vector<int> y)
 	yprime[i] = (float)(y[i]);
 	return vectordistance(x, yprime);
 }
+
+
 
 std::list<vector<float> > load_closest_obstacle(vector<float> position, vector<int> obstacle, int num_points){
 	std::ifstream slicefile(("/home/andrej/Workspace/cspoutput/4dsreduced/slice_"+boost::to_string(obstacle[0])+"_"+boost::to_string(obstacle[1])+"_"+boost::to_string(obstacle[2])+".dat").c_str(), ios::in);
@@ -127,32 +140,109 @@ vector< float > append_to_begining(float par_a, float par_b, vector<float> par_v
 	
 	return output;
 }
+double get_time()
+{
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    double d = t.tv_sec + (double) t.tv_usec/1000000;
+    return d;
+}
+void* sort_obstacle_list(void* par_void){
+	lister_parameters* params = (lister_parameters*) par_void;
+	std::list<vector<float> > reduced_concat_list; ///put N closest obstacles here
+	std::list<vector<float> > concat_obstacle_list; // list of all current obstacles
+	int maxpoints = params->converter->pointsconsidered;
+		
+	while(true){
+		vector<float> position;
+		///grab stuff
+		pthread_mutex_lock(params->position_lock);
+		position = *(params->position);
+		pthread_mutex_unlock(params->position_lock);
+		
+		
+		
+		pthread_mutex_lock(params->intermediate_configuration_lock);
+		concat_obstacle_list = *(params->intermediate_configuration_list);
+		pthread_mutex_unlock(params->intermediate_configuration_lock);
+		
+		//start sorting
+		std::list<vector<float> >::iterator iter;
+		std::list<vector<float> >::iterator iter4;
+		double time_start = get_time();
+		for	(iter = concat_obstacle_list.begin(); iter != concat_obstacle_list.end(); iter++){
+			vector< float > loadedpoint = *iter;
+			bool inserted = false;
+			for (iter4 = reduced_concat_list.begin(); iter4 != reduced_concat_list.end(); iter4++){
+				if (vectordistance(loadedpoint, position) < vectordistance(*iter4, position)){
+					reduced_concat_list.insert(iter4, loadedpoint);
+					inserted = true;
+					//printf("point added\n");
+					break;
+				}
+			}			
+			if (reduced_concat_list.size() < maxpoints && inserted == false)
+				reduced_concat_list.push_back(loadedpoint);
+			while (reduced_concat_list.size() > maxpoints) {
+				reduced_concat_list.pop_back();
+				//printf("point discarded\n");
+			}
 
+		}
+		///get distances
+		std::list < float> dist_list;
+		for(iter4 = reduced_concat_list.begin(); iter4!= reduced_concat_list.end(); iter4++){
+			dist_list.push_back(vectordistance(position, *iter4));
+		}
+		int listsize = reduced_concat_list.size();
+		//printf("generated %i positions from %i \n", listsize, local_obstacles.size());
+		if (listsize > 0){			
+			vector<float> firstelement = *(reduced_concat_list.begin());
+			float firstdist = *(dist_list.begin());
+			printf("Closest of %i is %f, %f, %f, %f, %f, %f at %f\n",listsize, firstelement[0], firstelement[1], firstelement[2], firstelement[3], firstelement[4], firstelement[5], firstdist);
+			//printf("Own position is  %f, %f, %f, %f, %f, %f \n", position[0], position[1], position[2], position[3], position[4], position[5]);
+		}
+		double time_end = get_time();
+		if (concat_obstacle_list.size() >3)
+			printf("sorted %i in %f sec.\n",concat_obstacle_list.size(), time_end - time_start);
+		pthread_mutex_lock(params->configuration_lock);
+		//printf("locked mutex at %i from obstacle thread, code %i\n", (params->configuration_lock), pthread_mutex_lock(params->configuration_lock));
+		params->distances_list->clear();
+		*(params->distances_list) = dist_list;
+		*(params->configuration_list) = reduced_concat_list;
+		pthread_mutex_unlock(params->configuration_lock);
+	}
+	
+	
+}
 
 void* update_obstacle_list_split(void* par_void){
 	///set up forward kinematics
 	//add baseframe here
-	lister_parameters params = *(lister_parameters*) par_void;
+	//printf("received mutex at %i\n", ((*(lister_parameters*) par_void).configuration_lock));
+	lister_parameters* params = (lister_parameters*) par_void;
+	//printf("new mutex at %i\n", (params->configuration_lock));
 	Chain KukaChain = KukaLWR_DHnew();
 	ChainFkSolverPos_recursive kinematic_solver(KukaChain);
 	KDL::Frame cartpos;
-	KDL::Frame k(KDL::Rotation::Quaternion(0.446, 0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.300)  );
+	KDL::Frame k(KDL::Rotation::Quaternion(0.446, 0.120, 0.857, 0.230), KDL::Vector(-0.050, 0.000, 0.330));
 	KDL::Vector newpos;
 	KDL::JntArray q(7);
 	for ( int i = 0; i < 7; i++){
-		q(i) = 0;
+		q(i) = 0.0;
 	}
 	kinematic_solver.JntToCart(q, cartpos, 3);
 	KDL::Frame inverse_null = cartpos;
-	
+	vector<int> bobs;
 	while (true){
+		double time_start = get_time();
 		vector<vector<int> > binned_obstacles(0);
 		vector<vector<float> > local_obstacles(0);
 		vector<float> position;
 		///grab stuff
-		pthread_mutex_lock(params.position_lock);
-		position = *(params.position);
-		pthread_mutex_unlock(params.position_lock);
+		pthread_mutex_lock(params->position_lock);
+		position = *(params->position);
+		pthread_mutex_unlock(params->position_lock);
 		if (position.size() < 1){
 			printf("No position received:\n");
 			sleep(2);
@@ -161,21 +251,22 @@ void* update_obstacle_list_split(void* par_void){
 		for ( int i = 0; i < position.size(); i++){
 			q(i) = position[i];
 		}
-		q(6) = 0;
+		q(6) = 0.0;
 		KDL::JntArray q_temp(7);
 		//printf("received: %f, %f, %f, %f \n", position[0], position[1], position[2], position[3]);
 		
 		
-		pthread_mutex_lock(params.list_lock);	
+		pthread_mutex_lock(params->list_lock);	
 		std::list<vector<float> >::iterator iter;
-		for (iter = params.obstacle_list->begin(); iter != params.obstacle_list->end(); iter++){
-			//uniquely_bin(&binned_obstacles, *iter, params.converter->lowerbounds, params.converter->upperbounds, params.converter->xycoarseness, params.converter->zcoarseness);
+		for (iter = params->obstacle_list->begin(); iter != params->obstacle_list->end(); iter++){
+			//uniquely_bin(&binned_obstacles, *iter, params->converter->lowerbounds, params->converter->upperbounds, params->converter->xycoarseness, params->converter->zcoarseness);
 			local_obstacles.push_back(*iter);
 		}
-		pthread_mutex_unlock(params.list_lock);
+		//printf("%i obstacles received\n", local_obstacles.size());
+		pthread_mutex_unlock(params->list_lock);
 		
 		std::list< vector < float > > concat_obstacle_list;
-		std::list < float> dist_list;
+
 		
 		vector< vector < float > >::iterator iter2;
 		//for (iter2 = binned_obstacles.begin(); iter2 != binned_obstacles.end(); iter2++){
@@ -183,8 +274,8 @@ void* update_obstacle_list_split(void* par_void){
 		for (iter2 = local_obstacles.begin(); iter2 != local_obstacles.end(); iter2++){
 				KDL::Vector obstacle((*iter2)[0], (*iter2)[1], (*iter2)[2]);
 				
-			for (float i = q(0)-0.05; i <= q(0)+0.05; i += 0.01)
-				for (float j = q(1)-0.05; j <= q(1)+0.05; j += 0.01){
+			for (float i = q(0)-0.06; i <= q(0)+0.06; i += 0.02)
+				for (float j = q(1)-0.06; j <= q(1)+0.06; j += 0.02){
 					q_temp = q;
 					q_temp(0) = i;
 					q_temp(1) = j;
@@ -192,31 +283,28 @@ void* update_obstacle_list_split(void* par_void){
 					kinematic_solver.JntToCart(q_temp, cartpos, 3);
 					newpos = inverse_null*cartpos.Inverse(k.Inverse(obstacle));
 					//printf("newpos is %f %f %f \n", newpos.x(), newpos.y(), newpos.z());
-					vector<int> bobs = to_binned_vector(newpos, params.converter->lowerbounds, params.converter->upperbounds, params.converter->xycoarseness, params.converter->zcoarseness);
+					bobs = to_binned_vector(newpos, params->converter->lowerbounds, params->converter->upperbounds, params->converter->xycoarseness, params->converter->zcoarseness);
+					//printf("oldpos is %f, %f, %f newpos is %f %f %f, binned to %i %i %i  \n", obstacle.x(), obstacle.y(), obstacle.z(), newpos.x(), newpos.y(), newpos.z(), bobs[0], bobs[0], bobs[2]);
+					//printf("Params are %f %f %f, %f %f %f, %f %f \n", params->converter->lowerbounds[0], params->converter->lowerbounds[0], params->converter->lowerbounds[2], params->converter->upperbounds[0], params->converter->upperbounds[0], params->converter->upperbounds[2], params->converter->xycoarseness, params->converter->zcoarseness);
 					///need to add first two coords to newlist
-					std::list<vector<float> > newlist = load_closest_obstacle(position, bobs, params.converter->pointsconsidered);
+					std::list<vector<float> > newlist = load_closest_obstacle(position, bobs, params->converter->pointsconsidered);
 					std::list< vector < float > >::iterator iter3;
-					float diminishingFactor = 1;
 					for(iter3 = newlist.begin(); iter3!= newlist.end(); iter3++){
 						(*iter3)[0] = i;
 						(*iter3)[1] = j;
-						
-						//*iter3 = append_to_begining(i, j, *iter3);
-						dist_list.push_back(diminishingFactor*vectordistance(position, *iter3));
 					}
 					concat_obstacle_list.splice(concat_obstacle_list.end(), newlist);
 				}
 		
 		}
-		int listsize = concat_obstacle_list.size();
-		//printf("generated %i positions\n", listsize);
-		pthread_mutex_lock(params.configuration_lock);
-		params.distances_list->clear();
-		*(params.distances_list) = dist_list;
-		*(params.configuration_list) = concat_obstacle_list;
-		pthread_mutex_unlock(params.configuration_lock);
+		
+		pthread_mutex_lock(params->intermediate_configuration_lock);
+		*(params->intermediate_configuration_list) = concat_obstacle_list;
+		pthread_mutex_unlock(params->intermediate_configuration_lock);
 		//sleep(1);
-	
+		double time_end = get_time();
+		if(concat_obstacle_list.size() > 3)
+			printf("loaded %i in %f sec.\n",concat_obstacle_list.size(), time_end - time_start);
 	}
 }
 
@@ -355,11 +443,13 @@ vector<float> cspaceconverter::get_safest_configuration(vector<float> par_positi
 
 void cspaceconverter::launch_obstacle_thread(){
 	pthread_t thread;
-	lister_parameters* t = new lister_parameters(this, &list_lock, &position_lock, &configuration_lock, &position, &obstacle_list, &configuration_list, &distances_list); 
+	lister_parameters* t = new lister_parameters(this, &list_lock, &position_lock, &configuration_lock, &intermediate_configuration_lock, &position, &obstacle_list, &intermediate_configuration_list, &configuration_list, &distances_list); 
 	if (mode == 0)
 		int rc = pthread_create(&thread, NULL, update_obstacle_list, (void *)t);
-	else
+	else{
 		int rc = pthread_create(&thread, NULL, update_obstacle_list_split, (void *)t);
+		int rc2 = pthread_create(&thread, NULL, sort_obstacle_list, (void *)t);
+		}
      
 	
 }
@@ -432,7 +522,7 @@ vector<float> cspaceconverter::get_configurations_as_vectors(){
 vector<float> cspaceconverter::get_distances_as_vectors(){
 	vector<float> output(0);
 	pthread_mutex_lock(&configuration_lock);
-			
+	//printf("locked mutex at %i from main thread, code %i\n", &(configuration_lock), pthread_mutex_lock(&configuration_lock));
 	std::list<float>::iterator iter;
 	for(iter = distances_list.begin(); iter != distances_list.end(); iter++)	
 		output.push_back(*iter);
